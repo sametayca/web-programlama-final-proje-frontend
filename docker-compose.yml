@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: .
+    container_name: frontend-app
+    environment:
+      VITE_API_URL: http://localhost:3000/api
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+
