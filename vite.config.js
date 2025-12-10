@@ -11,12 +11,13 @@ export default defineConfig({
       '.railway.app', // Tüm Railway domain'lerine izin ver
       'localhost'
     ],
-    proxy: {
+    // Proxy sadece development'ta kullanılır, production'da API_URL environment variable kullanılır
+    proxy: process.env.NODE_ENV === 'development' ? {
       '/api': {
         target: 'http://localhost:3000', // Backend localhost'ta çalışıyor
         changeOrigin: true
       }
-    }
+    } : undefined
   }
 })
 

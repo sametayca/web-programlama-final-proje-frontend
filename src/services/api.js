@@ -1,6 +1,35 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+// API URL'ini belirle: Environment variable varsa onu kullan, yoksa production'da otomatik tespit et
+const getApiUrl = () => {
+  // Environment variable varsa onu kullan
+  if (import.meta.env.VITE_API_URL) {
+    const url = import.meta.env.VITE_API_URL
+    console.log('🔗 API URL (Environment Variable):', url)
+    return url
+  }
+  
+  // Production'da (HTTPS) ise, backend URL'ini tahmin et
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    const hostname = window.location.hostname
+    if (hostname.includes('railway.app')) {
+      // Frontend URL'inden backend URL'ini oluştur
+      // Örnek: frontend-production -> backend-production
+      const backendHostname = hostname.replace('frontend', 'backend')
+      const url = `https://${backendHostname}/api`
+      console.log('🔗 API URL (Auto-detected from Railway):', url)
+      console.warn('⚠️ VITE_API_URL environment variable ayarlanmamış! Railway\'de backend URL\'ini ayarlayın.')
+      return url
+    }
+  }
+  
+  // Development için default
+  const url = 'http://localhost:3000/api'
+  console.log('🔗 API URL (Default - Development):', url)
+  return url
+}
+
+const API_URL = getApiUrl()
 
 // Create axios instance
 const api = axios.create({
