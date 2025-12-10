@@ -4,11 +4,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: '0.0.0.0', // Docker container için gerekli
+    host: '0.0.0.0', // Tüm ağ arayüzlerinde dinle (mobil cihazlar için gerekli)
     port: 3001,
     proxy: {
       '/api': {
-        target: 'http://backend:3000', // Docker network içinde container adı
+        target: 'http://localhost:3000', // Backend localhost'ta çalışıyor
         changeOrigin: true
       }
     }

@@ -15,7 +15,9 @@ import {
   Divider,
   Fade,
   Grow,
-  CircularProgress
+  CircularProgress,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material'
 import {
   Email as EmailIcon,
@@ -33,6 +35,7 @@ const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -261,6 +264,24 @@ const Login = () => {
                         ),
                       }}
                     />
+                    <Box sx={{ mb: 2 }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            color="primary"
+                          />
+                        }
+                        label="Beni hatırla"
+                        sx={{
+                          '& .MuiFormControlLabel-label': {
+                            fontSize: '0.9rem',
+                            fontWeight: 500
+                          }
+                        }}
+                      />
+                    </Box>
                     <Button
                       type="submit"
                       fullWidth

@@ -22,7 +22,9 @@ import {
   Step,
   StepLabel,
   Fade,
-  Grow
+  Grow,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material'
 import {
   Person as PersonIcon,
@@ -64,6 +66,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false)
   const [departments, setDepartments] = useState([])
   const [loadingDepartments, setLoadingDepartments] = useState(true)
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
 
@@ -72,12 +75,26 @@ const Register = () => {
       try {
         setLoadingDepartments(true)
         const response = await departmentService.getDepartments()
-        if (response.data.success) {
-          setDepartments(response.data.data)
+        console.log('Departments API Response:', response.data)
+        if (response.data && response.data.success) {
+          setDepartments(response.data.data || [])
+          if (response.data.data && response.data.data.length === 0) {
+            console.warn('⚠️ Bölüm listesi boş')
+            toast.warning('Henüz bölüm bulunmamaktadır')
+          }
+        } else {
+          console.error('API response format hatası:', response.data)
+          toast.error('Bölümler yüklenirken bir hata oluştu')
         }
       } catch (error) {
         console.error('Error fetching departments:', error)
-        toast.error('Bölümler yüklenirken bir hata oluştu')
+        console.error('Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          url: error.config?.url
+        })
+        toast.error(`Bölümler yüklenirken bir hata oluştu: ${error.response?.data?.error || error.message}`)
       } finally {
         setLoadingDepartments(false)
       }
@@ -108,8 +125,17 @@ const Register = () => {
         setError('Şifreler eşleşmiyor')
         return
       }
-      if (formData.password.length < 6) {
-        setError('Şifre en az 6 karakter olmalıdır')
+      // Password validation: min 8 chars, uppercase, number
+      if (formData.password.length < 8) {
+        setError('Şifre en az 8 karakter olmalıdır')
+        return
+      }
+      if (!/[A-Z]/.test(formData.password)) {
+        setError('Şifre en az bir büyük harf içermelidir')
+        return
+      }
+      if (!/[0-9]/.test(formData.password)) {
+        setError('Şifre en az bir rakam içermelidir')
         return
       }
     }
@@ -128,6 +154,11 @@ const Register = () => {
 
     if (!formData.departmentId) {
       setError('Lütfen bölüm seçin')
+      return
+    }
+
+    if (!termsAccepted) {
+      setError('Lütfen kullanım şartlarını kabul edin')
       return
     }
 
@@ -673,6 +704,32 @@ const Register = () => {
                     </>
                   )}
                 </Grid>
+              )}
+
+              {activeStep === steps.length - 1 && (
+                <Box sx={{ mt: 3 }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        color="primary"
+                        required
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">
+                        <Link to="/terms" target="_blank" style={{ textDecoration: 'none', color: 'primary.main' }}>
+                          Kullanım şartlarını
+                        </Link> ve{' '}
+                        <Link to="/privacy" target="_blank" style={{ textDecoration: 'none', color: 'primary.main' }}>
+                          gizlilik politikasını
+                        </Link> okudum ve kabul ediyorum
+                      </Typography>
+                    }
+                    sx={{ mb: 2 }}
+                  />
+                </Box>
               )}
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
