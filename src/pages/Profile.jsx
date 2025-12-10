@@ -80,22 +80,47 @@ const Profile = () => {
 
     try {
       const response = await authService.updateProfile(formData)
-      updateUser(response.data.data)
+      const updatedUser = response.data.data
+      
+      // Reload profile to get complete updated data with relationships
       await loadProfile()
+      
+      // Update user context with complete profile data
+      if (updatedUser && user) {
+        updateUser({
+          ...user,
+          ...updatedUser,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          phone: updatedUser.phone
+        })
+      }
+      
       toast.success('Profil başarıyla güncellendi!')
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Profil güncellenemedi')
+      console.error('Profile update error:', error)
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Profil güncellenemedi'
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0]
     if (!file) return
 
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Sadece JPEG, PNG veya GIF formatında dosyalar yüklenebilir')
+      e.target.value = '' // Reset input
+      return
+    }
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Dosya boyutu 5MB\'dan küçük olmalıdır')
+      e.target.value = '' // Reset input
       return
     }
 
@@ -104,15 +129,35 @@ const Profile = () => {
     uploadFormData.append('picture', file)
 
     try {
-      await authService.uploadProfilePicture(uploadFormData)
-      await loadProfile()
-      updateUser({ ...user, profilePicture: profile?.profilePicture })
+      const response = await authService.uploadProfilePicture(uploadFormData)
+      const profilePictureFilename = response.data.data?.profilePicture
+      
+      // Reload profile to get updated data
+      const profileResponse = await authService.getProfile()
+      const updatedProfile = profileResponse.data.data
+      
+      // Update local state
+      setProfile(updatedProfile)
+      
+      // Update user context with complete updated profile data
+      if (updatedProfile && user) {
+        updateUser({
+          ...user,
+          ...updatedProfile,
+          profilePicture: profilePictureFilename || updatedProfile.profilePicture
+        })
+      }
+      
       toast.success('Profil fotoğrafı başarıyla güncellendi!')
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Fotoğraf yüklenemedi')
+      console.error('Upload error:', error)
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Fotoğraf yüklenemedi'
+      toast.error(errorMessage)
+    } finally {
+      setUploading(false)
+      // Reset file input
+      e.target.value = ''
     }
-
-    setUploading(false)
   }
 
   const getRoleText = (role) => {
