@@ -32,6 +32,13 @@ import { authService } from '../services/api'
 import { toast } from 'react-toastify'
 import Layout from '../components/Layout'
 
+// API base URL'ini al (API_URL'den /api kısmını çıkar)
+const getBaseUrl = () => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+  // /api ile bitiyorsa çıkar, yoksa olduğu gibi kullan
+  return apiUrl.replace(/\/api\/?$/, '')
+}
+
 const Profile = () => {
   const { user, updateUser } = useAuth()
   const navigate = useNavigate()
@@ -159,7 +166,7 @@ const Profile = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
                   <Box sx={{ position: 'relative', mb: 3 }}>
                     <Avatar
-                      src={profile?.profilePicture ? `http://localhost:3000/uploads/profile-pictures/${profile.profilePicture}` : ''}
+                      src={profile?.profilePicture ? `${getBaseUrl()}/uploads/profile-pictures/${profile.profilePicture}` : ''}
                       sx={{
                         width: 150,
                         height: 150,
