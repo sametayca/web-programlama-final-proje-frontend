@@ -26,6 +26,7 @@ import {
   School as SchoolIcon,
   Download as DownloadIcon
 } from '@mui/icons-material'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { gradeService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
@@ -225,7 +226,79 @@ const Grades = () => {
             </CardContent>
           </Card>
         ) : (
-          <TableContainer component={Paper}>
+          <>
+            {/* Charts */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              {/* Grade Distribution Chart */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Grade Distribution
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={(() => {
+                        const gradeCounts = { A: 0, B: 0, C: 0, D: 0, F: 0 }
+                        grades.forEach(g => {
+                          if (g.letterGrade && gradeCounts.hasOwnProperty(g.letterGrade)) {
+                            gradeCounts[g.letterGrade]++
+                          }
+                        })
+                        return Object.entries(gradeCounts).map(([grade, count]) => ({ grade, count }))
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="grade" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="count" fill="#3b82f6" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* GPA Trend Chart */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      GPA Trend
+                    </Typography>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={(() => {
+                        // Group by semester/year and calculate GPA for each
+                        const semesterData = {}
+                        grades.forEach(g => {
+                          if (g.section && g.gradePoint !== null) {
+                            const key = `${g.section.semester}-${g.section.year}`
+                            if (!semesterData[key]) {
+                              semesterData[key] = { semester: key, totalPoints: 0, totalCredits: 0 }
+                            }
+                            const credits = g.section.course?.credits || 0
+                            semesterData[key].totalPoints += (g.gradePoint * credits)
+                            semesterData[key].totalCredits += credits
+                          }
+                        })
+                        return Object.values(semesterData).map(d => ({
+                          semester: d.semester,
+                          gpa: d.totalCredits > 0 ? (d.totalPoints / d.totalCredits).toFixed(2) : 0
+                        })).sort((a, b) => a.semester.localeCompare(b.semester))
+                      })()}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="semester" />
+                        <YAxis domain={[0, 4]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="gpa" stroke="#10b981" strokeWidth={2} name="GPA" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+
+            <TableContainer component={Paper}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -286,6 +359,7 @@ const Grades = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          </>
         )}
       </Container>
     </Layout>

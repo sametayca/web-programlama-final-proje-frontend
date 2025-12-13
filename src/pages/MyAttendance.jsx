@@ -20,6 +20,7 @@ import {
   Assignment as AssignmentIcon
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { attendanceService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
@@ -123,8 +124,35 @@ const MyAttendance = () => {
             </CardContent>
           </Card>
         ) : (
-          <Grid container spacing={3}>
-            {attendanceData.map((item) => {
+          <>
+            {/* Attendance Chart */}
+            {attendanceData.length > 0 && (
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Attendance Overview
+                  </Typography>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={attendanceData.map(item => ({
+                      course: item.course?.code || 'N/A',
+                      percentage: item.attendance.attendancePercentage || 0,
+                      attended: item.attendance.attendedSessions || 0,
+                      total: item.attendance.totalSessions || 0
+                    }))}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="course" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="percentage" stroke="#3b82f6" strokeWidth={2} name="Attendance %" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            <Grid container spacing={3}>
+              {attendanceData.map((item) => {
               const { course, attendance } = item
               const percentage = attendance.attendancePercentage || 0
 
@@ -202,7 +230,8 @@ const MyAttendance = () => {
                 </Grid>
               )
             })}
-          </Grid>
+            </Grid>
+          </>
         )}
       </Container>
     </Layout>

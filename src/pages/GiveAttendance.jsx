@@ -20,6 +20,7 @@ import {
 import { attendanceService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
+import MapComponent from '../components/MapComponent'
 import { toast } from 'react-toastify'
 
 const GiveAttendance = () => {
@@ -193,6 +194,29 @@ const GiveAttendance = () => {
             </Box>
           </CardContent>
         </Card>
+
+        {/* Map Component */}
+        {session && (
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                <LocationOnIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Location Map
+              </Typography>
+              <Box sx={{ mt: 2 }}>
+                <MapComponent
+                  classroomLocation={{
+                    latitude: parseFloat(session.latitude),
+                    longitude: parseFloat(session.longitude)
+                  }}
+                  userLocation={location}
+                  geofenceRadius={parseFloat(session.geofenceRadius)}
+                  height="300px"
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        )}
 
         <Card sx={{ mb: 3 }}>
           <CardContent>

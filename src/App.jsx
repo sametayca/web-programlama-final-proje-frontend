@@ -16,6 +16,9 @@ import Grades from './pages/Grades'
 import MyAttendance from './pages/MyAttendance'
 import StartAttendance from './pages/StartAttendance'
 import GiveAttendance from './pages/GiveAttendance'
+import Gradebook from './pages/Gradebook'
+import AttendanceReport from './pages/AttendanceReport'
+import ExcuseRequests from './pages/ExcuseRequests'
 
 function App() {
   const { user, loading } = useAuth()
@@ -112,6 +115,30 @@ function App() {
         element={
           <ProtectedRoute>
             <GiveAttendance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/gradebook/:sectionId"
+        element={
+          <ProtectedRoute>
+            <Gradebook />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/attendance/report/:sectionId"
+        element={
+          <ProtectedRoute>
+            <AttendanceReport />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/excuse-requests"
+        element={
+          <ProtectedRoute>
+            <ExcuseRequests />
           </ProtectedRoute>
         }
       />

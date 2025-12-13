@@ -147,6 +147,7 @@ export const courseService = {
 // Section service (Part 2)
 export const sectionService = {
   getSections: (params) => api.get('/v1/sections', { params }),
+  getSection: (id) => api.get(`/v1/sections/${id}`),
   getSectionById: (id) => api.get(`/v1/sections/${id}`),
   createSection: (data) => api.post('/v1/sections', data),
   updateSection: (id, data) => api.put(`/v1/sections/${id}`, data)
@@ -171,6 +172,7 @@ export const gradeService = {
 // Attendance service (Part 2)
 export const attendanceService = {
   createSession: (data) => api.post('/v1/attendance/sessions', data),
+  getAttendanceReport: (sectionId) => api.get(`/v1/attendance/report/${sectionId}`),
   getSession: (id) => api.get(`/v1/attendance/sessions/${id}`),
   closeSession: (id) => api.put(`/v1/attendance/sessions/${id}/close`),
   getMySessions: (params) => api.get('/v1/attendance/sessions/my-sessions', { params }),
