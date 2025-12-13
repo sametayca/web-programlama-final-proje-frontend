@@ -2,16 +2,7 @@ import axios from 'axios'
 
 // API URL'ini RUNTIME'da belirle (build-time değil!)
 const getApiUrl = () => {
-  // Önce environment variable'ı kontrol et (build-time'da set edilmiş olabilir)
-  const envUrl = import.meta.env.VITE_API_URL
-  
-  // Eğer environment variable local IP veya localhost içeriyorsa, production'da kullanma
-  if (envUrl && !envUrl.includes('192.168.') && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
-    console.log('🔗 API URL (Environment Variable):', envUrl)
-    return envUrl
-  }
-  
-  // Runtime'da window.location'dan tespit et
+  // Runtime'da window.location'dan tespit et (ÖNCE BU!)
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol
     const hostname = window.location.hostname
@@ -23,22 +14,22 @@ const getApiUrl = () => {
       const backendHostname = hostname.replace('frontend', 'backend')
       const url = `https://${backendHostname}/api`
       console.log('🔗 API URL (Runtime Auto-detected from Railway):', url)
-      if (envUrl && (envUrl.includes('192.168.') || envUrl.includes('localhost'))) {
-        console.warn('⚠️ VITE_API_URL local IP içeriyor! Railway\'de backend URL\'ini düzeltin.')
-      }
       return url
     }
     
-    // Development için
+    // Development için - Browser'dan çalışıyorsa her zaman localhost kullan
     if (protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1')) {
       const url = 'http://localhost:3000/api'
-      console.log('🔗 API URL (Development):', url)
+      console.log('🔗 API URL (Development - Browser):', url)
       return url
     }
   }
   
-  // Fallback: Environment variable varsa onu kullan (ama local IP değilse)
-  if (envUrl && !envUrl.includes('192.168.') && !envUrl.includes('localhost')) {
+  // Environment variable'ı kontrol et (sadece Docker internal network için)
+  const envUrl = import.meta.env.VITE_API_URL
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    // Docker internal network URL'i (sadece server-side rendering için)
+    console.log('🔗 API URL (Environment Variable - Docker internal):', envUrl)
     return envUrl
   }
   
@@ -142,6 +133,54 @@ export const authService = {
 // Department service
 export const departmentService = {
   getDepartments: () => api.get('/departments')
+}
+
+// Course service (Part 2)
+export const courseService = {
+  getCourses: (params) => api.get('/v1/courses', { params }),
+  getCourseById: (id) => api.get(`/v1/courses/${id}`),
+  createCourse: (data) => api.post('/v1/courses', data),
+  updateCourse: (id, data) => api.put(`/v1/courses/${id}`, data),
+  deleteCourse: (id) => api.delete(`/v1/courses/${id}`)
+}
+
+// Section service (Part 2)
+export const sectionService = {
+  getSections: (params) => api.get('/v1/sections', { params }),
+  getSectionById: (id) => api.get(`/v1/sections/${id}`),
+  createSection: (data) => api.post('/v1/sections', data),
+  updateSection: (id, data) => api.put(`/v1/sections/${id}`, data)
+}
+
+// Enrollment service (Part 2)
+export const enrollmentService = {
+  enroll: (sectionId) => api.post('/v1/enrollments', { sectionId }),
+  drop: (enrollmentId) => api.delete(`/v1/enrollments/${enrollmentId}`),
+  getMyCourses: (params) => api.get('/v1/enrollments/my-courses', { params }),
+  getSectionStudents: (sectionId) => api.get(`/v1/enrollments/students/${sectionId}`)
+}
+
+// Grade service (Part 2)
+export const gradeService = {
+  getMyGrades: (params) => api.get('/v1/grades/my-grades', { params }),
+  getTranscript: () => api.get('/v1/grades/transcript'),
+  getTranscriptPDF: () => api.get('/v1/grades/transcript/pdf', { responseType: 'blob' }),
+  enterGrade: (data) => api.post('/v1/grades', data)
+}
+
+// Attendance service (Part 2)
+export const attendanceService = {
+  createSession: (data) => api.post('/v1/attendance/sessions', data),
+  getSession: (id) => api.get(`/v1/attendance/sessions/${id}`),
+  closeSession: (id) => api.put(`/v1/attendance/sessions/${id}/close`),
+  getMySessions: (params) => api.get('/v1/attendance/sessions/my-sessions', { params }),
+  checkIn: (sessionId, data) => api.post(`/v1/attendance/sessions/${sessionId}/checkin`, data),
+  getMyAttendance: (params) => api.get('/v1/attendance/my-attendance', { params }),
+  getReport: (sectionId) => api.get(`/v1/attendance/report/${sectionId}`),
+  createExcuseRequest: (data) => api.post('/v1/attendance/excuse-requests', data),
+  getExcuseRequests: (params) => api.get('/v1/attendance/excuse-requests', { params }),
+  approveExcuseRequest: (id, data) => api.put(`/v1/attendance/excuse-requests/${id}/approve`, data),
+  rejectExcuseRequest: (id, data) => api.put(`/v1/attendance/excuse-requests/${id}/reject`, data)
 }
 
 export default api

@@ -74,34 +74,55 @@ const Register = () => {
     const fetchDepartments = async () => {
       try {
         setLoadingDepartments(true)
+        console.log('🔍 Fetching departments...')
         const response = await departmentService.getDepartments()
-        console.log('Departments API Response:', response.data)
+        console.log('📥 Full API Response:', response)
+        console.log('📥 Response.data:', response.data)
+        console.log('📥 Response.data.success:', response.data?.success)
+        console.log('📥 Response.data.data:', response.data?.data)
+        console.log('📥 Response.data.data length:', response.data?.data?.length)
+        
         if (response.data && response.data.success) {
-          setDepartments(response.data.data || [])
-          if (response.data.data && response.data.data.length === 0) {
+          const deptList = response.data.data || []
+          console.log('✅ Departments found:', deptList.length)
+          console.log('📋 Departments list:', deptList)
+          setDepartments(deptList)
+          if (deptList.length === 0) {
             console.warn('⚠️ Bölüm listesi boş')
             toast.warning('Henüz bölüm bulunmamaktadır')
+          } else {
+            console.log('✅ Bölümler başarıyla yüklendi:', deptList.length, 'adet')
           }
         } else {
-          console.error('API response format hatası:', response.data)
+          console.error('❌ API response format hatası:', response.data)
+          console.error('❌ Expected: { success: true, data: [...] }')
+          console.error('❌ Received:', JSON.stringify(response.data, null, 2))
           toast.error('Bölümler yüklenirken bir hata oluştu')
         }
       } catch (error) {
-        console.error('Error fetching departments:', error)
-        console.error('Error details:', {
+        console.error('❌ Error fetching departments:', error)
+        console.error('❌ Error details:', {
           message: error.message,
           response: error.response?.data,
           status: error.response?.status,
-          url: error.config?.url
+          url: error.config?.url,
+          baseURL: error.config?.baseURL
         })
         toast.error(`Bölümler yüklenirken bir hata oluştu: ${error.response?.data?.error || error.message}`)
       } finally {
         setLoadingDepartments(false)
+        console.log('🏁 Department loading finished')
       }
     }
 
     fetchDepartments()
   }, [])
+
+  // Debug: Departments state değişikliğini izle
+  useEffect(() => {
+    console.log('📊 Departments state changed:', departments.length, 'items')
+    console.log('📊 Departments:', departments)
+  }, [departments])
 
   const handleChange = (e) => {
     setFormData({
@@ -645,12 +666,19 @@ const Register = () => {
                               <CircularProgress size={20} sx={{ mr: 1 }} />
                               Bölümler yükleniyor...
                             </MenuItem>
+                          ) : departments.length === 0 ? (
+                            <MenuItem disabled>
+                              Bölüm bulunamadı
+                            </MenuItem>
                           ) : (
-                            departments.map((dept) => (
-                              <MenuItem key={dept.id} value={dept.id}>
-                                {dept.name} ({dept.code})
-                              </MenuItem>
-                            ))
+                            departments.map((dept) => {
+                              console.log('🔹 Rendering department:', dept.id, dept.name)
+                              return (
+                                <MenuItem key={dept.id} value={dept.id}>
+                                  {dept.name} ({dept.code})
+                                </MenuItem>
+                              )
+                            })
                           )}
                         </Select>
                       </FormControl>
@@ -691,12 +719,19 @@ const Register = () => {
                                 <CircularProgress size={20} sx={{ mr: 1 }} />
                                 Bölümler yükleniyor...
                               </MenuItem>
+                            ) : departments.length === 0 ? (
+                              <MenuItem disabled>
+                                Bölüm bulunamadı
+                              </MenuItem>
                             ) : (
-                              departments.map((dept) => (
-                                <MenuItem key={dept.id} value={dept.id}>
-                                  {dept.name} ({dept.code})
-                                </MenuItem>
-                              ))
+                              departments.map((dept) => {
+                                console.log('🔹 Rendering department:', dept.id, dept.name)
+                                return (
+                                  <MenuItem key={dept.id} value={dept.id}>
+                                    {dept.name} ({dept.code})
+                                  </MenuItem>
+                                )
+                              })
                             )}
                           </Select>
                         </FormControl>

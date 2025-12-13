@@ -30,7 +30,12 @@ import {
   Email as EmailIcon,
   VerifiedUser as VerifiedUserIcon,
   AccountCircle,
-  Notifications as NotificationsIcon
+  Notifications as NotificationsIcon,
+  Book as BookIcon,
+  Assignment as AssignmentIcon,
+  HowToReg as HowToRegIcon,
+  LocationOn as LocationOnIcon,
+  Assessment as AssessmentIcon
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 
@@ -65,7 +70,19 @@ const Layout = ({ children }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Profil', icon: <PersonIcon />, path: '/profile' },
-  ]
+    // Part 2 - Academic Management
+    { text: 'Course Catalog', icon: <BookIcon />, path: '/courses', roles: ['student', 'faculty', 'admin'] },
+    { text: 'My Courses', icon: <SchoolIcon />, path: '/my-courses', roles: ['student'] },
+    { text: 'My Grades', icon: <AssessmentIcon />, path: '/grades', roles: ['student'] },
+    { text: 'My Attendance', icon: <LocationOnIcon />, path: '/my-attendance', roles: ['student'] },
+    // Faculty only
+    { text: 'Start Attendance', icon: <HowToRegIcon />, path: '/attendance/start', roles: ['faculty'] },
+    { text: 'Excuse Requests', icon: <AssignmentIcon />, path: '/excuse-requests', roles: ['faculty'] },
+  ].filter(item => {
+    // Filter menu items based on user role
+    if (!item.roles) return true
+    return item.roles.includes(user?.role)
+  })
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

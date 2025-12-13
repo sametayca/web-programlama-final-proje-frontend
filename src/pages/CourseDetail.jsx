@@ -1,0 +1,289 @@
+import { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import {
+  Box,
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Chip,
+  Divider,
+  Grid,
+  Alert,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText
+} from '@mui/material'
+import {
+  ArrowBack as ArrowBackIcon,
+  School as SchoolIcon,
+  People as PeopleIcon,
+  Schedule as ScheduleIcon,
+  CheckCircle as CheckCircleIcon
+} from '@mui/icons-material'
+import { courseService, enrollmentService } from '../services/api'
+import { useAuth } from '../context/AuthContext'
+import Layout from '../components/Layout'
+import { toast } from 'react-toastify'
+
+const CourseDetail = () => {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const [course, setCourse] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [enrolling, setEnrolling] = useState(false)
+  const [enrollDialog, setEnrollDialog] = useState(false)
+  const [selectedSection, setSelectedSection] = useState(null)
+
+  useEffect(() => {
+    fetchCourse()
+  }, [id])
+
+  const fetchCourse = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await courseService.getCourseById(id)
+      setCourse(response.data.data)
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to fetch course details')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEnroll = async (section) => {
+    if (user?.role !== 'student') {
+      toast.error('Only students can enroll in courses')
+      return
+    }
+
+    setSelectedSection(section)
+    setEnrollDialog(true)
+  }
+
+  const confirmEnroll = async () => {
+    setEnrolling(true)
+    try {
+      await enrollmentService.enroll(selectedSection.id)
+      toast.success('Successfully enrolled in course!')
+      setEnrollDialog(false)
+      fetchCourse()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to enroll in course')
+    } finally {
+      setEnrolling(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      </Layout>
+    )
+  }
+
+  if (error || !course) {
+    return (
+      <Layout>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Alert severity="error">{error || 'Course not found'}</Alert>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/courses')}
+            sx={{ mt: 2 }}
+          >
+            Back to Catalog
+          </Button>
+        </Container>
+      </Layout>
+    )
+  }
+
+  return (
+    <Layout>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/courses')}
+          sx={{ mb: 3 }}
+        >
+          Back to Catalog
+        </Button>
+
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Box>
+                <Chip label={course.code} color="primary" sx={{ mb: 1, fontWeight: 600 }} />
+                <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+                  {course.name}
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  {course.department?.name}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right' }}>
+                <Chip label={`${course.credits} Credits`} sx={{ mb: 1 }} />
+                <Typography variant="body2" color="text.secondary">
+                  {course.ects} ECTS
+                </Typography>
+              </Box>
+            </Box>
+
+            {course.description && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="body1" paragraph>
+                  {course.description}
+                </Typography>
+              </>
+            )}
+
+            {course.syllabusUrl && (
+              <Button
+                variant="outlined"
+                href={course.syllabusUrl}
+                target="_blank"
+                sx={{ mt: 2 }}
+              >
+                View Syllabus
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {course.prerequisites && course.prerequisites.length > 0 && (
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                Prerequisites
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
+                {course.prerequisites.map((prereq) => (
+                  <Chip
+                    key={prereq.id}
+                    label={`${prereq.code} - ${prereq.name}`}
+                    variant="outlined"
+                    onClick={() => navigate(`/courses/${prereq.id}`)}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+              Available Sections
+            </Typography>
+
+            {!course.sections || course.sections.length === 0 ? (
+              <Alert severity="info">No sections available for this course</Alert>
+            ) : (
+              <Grid container spacing={2}>
+                {course.sections.map((section) => (
+                  <Grid item xs={12} key={section.id}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" gutterBottom>
+                              Section {section.sectionNumber}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 1 }}>
+                              <Chip
+                                icon={<PeopleIcon />}
+                                label={section.instructor ? `${section.instructor.firstName} ${section.instructor.lastName}` : 'TBA'}
+                                size="small"
+                                variant="outlined"
+                              />
+                              <Chip
+                                icon={<ScheduleIcon />}
+                                label={`${section.semester} ${section.year}`}
+                                size="small"
+                                variant="outlined"
+                              />
+                              <Chip
+                                label={`${section.enrolledCount}/${section.capacity}`}
+                                size="small"
+                                color={section.enrolledCount >= section.capacity ? 'error' : 'default'}
+                              />
+                            </Box>
+                            {section.scheduleJson && (
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                {Array.isArray(section.scheduleJson.days) && section.scheduleJson.days.join(', ')}
+                                {section.scheduleJson.startTime && ` • ${section.scheduleJson.startTime} - ${section.scheduleJson.endTime}`}
+                              </Typography>
+                            )}
+                          </Box>
+                          {user?.role === 'student' && (
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              onClick={() => handleEnroll(section)}
+                              disabled={section.enrolledCount >= section.capacity}
+                            >
+                              {section.enrolledCount >= section.capacity ? 'Full' : 'Enroll'}
+                            </Button>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </CardContent>
+        </Card>
+
+        <Dialog open={enrollDialog} onClose={() => setEnrollDialog(false)}>
+          <DialogTitle>Confirm Enrollment</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to enroll in <strong>Section {selectedSection?.sectionNumber}</strong>?
+            </Typography>
+            {selectedSection && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Instructor: {selectedSection.instructor?.firstName} {selectedSection.instructor?.lastName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Schedule: {Array.isArray(selectedSection.scheduleJson?.days) && selectedSection.scheduleJson.days.join(', ')}
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEnrollDialog(false)}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={confirmEnroll}
+              disabled={enrolling}
+            >
+              {enrolling ? <CircularProgress size={20} /> : 'Confirm'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
+    </Layout>
+  )
+}
+
+export default CourseDetail
+

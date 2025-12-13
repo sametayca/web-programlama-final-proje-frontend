@@ -9,6 +9,13 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
+import CourseCatalog from './pages/CourseCatalog'
+import CourseDetail from './pages/CourseDetail'
+import MyCourses from './pages/MyCourses'
+import Grades from './pages/Grades'
+import MyAttendance from './pages/MyAttendance'
+import StartAttendance from './pages/StartAttendance'
+import GiveAttendance from './pages/GiveAttendance'
 
 function App() {
   const { user, loading } = useAuth()
@@ -49,6 +56,62 @@ function App() {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/courses"
+        element={
+          <ProtectedRoute>
+            <CourseCatalog />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/courses/:id"
+        element={
+          <ProtectedRoute>
+            <CourseDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-courses"
+        element={
+          <ProtectedRoute>
+            <MyCourses />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/grades"
+        element={
+          <ProtectedRoute>
+            <Grades />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-attendance"
+        element={
+          <ProtectedRoute>
+            <MyAttendance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/attendance/start"
+        element={
+          <ProtectedRoute>
+            <StartAttendance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/attendance/give/:sessionId"
+        element={
+          <ProtectedRoute>
+            <GiveAttendance />
           </ProtectedRoute>
         }
       />

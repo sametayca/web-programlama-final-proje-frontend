@@ -1,0 +1,301 @@
+import { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import {
+  Box,
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  CircularProgress,
+  Alert,
+  Chip,
+  Grid
+} from '@mui/material'
+import {
+  LocationOn as LocationOnIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon
+} from '@mui/icons-material'
+import { attendanceService } from '../services/api'
+import { useAuth } from '../context/AuthContext'
+import Layout from '../components/Layout'
+import { toast } from 'react-toastify'
+
+const GiveAttendance = () => {
+  const { sessionId } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [checkingIn, setCheckingIn] = useState(false)
+  const [location, setLocation] = useState(null)
+  const [locationError, setLocationError] = useState(null)
+  const [distance, setDistance] = useState(null)
+
+  useEffect(() => {
+    if (user?.role === 'student') {
+      fetchSession()
+      requestLocation()
+    }
+  }, [sessionId, user])
+
+  const fetchSession = async () => {
+    setLoading(true)
+    try {
+      const response = await attendanceService.getSession(sessionId)
+      setSession(response.data.data)
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to fetch session')
+      navigate('/my-attendance')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser')
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        })
+        setLocationError(null)
+      },
+      (error) => {
+        setLocationError('Failed to get your location. Please enable location services.')
+        console.error('Geolocation error:', error)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    )
+  }
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371000
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLon = (lon2 - lon1) * Math.PI / 180
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return R * c
+  }
+
+  useEffect(() => {
+    if (location && session) {
+      const dist = calculateDistance(
+        location.latitude,
+        location.longitude,
+        parseFloat(session.latitude),
+        parseFloat(session.longitude)
+      )
+      setDistance(dist)
+    }
+  }, [location, session])
+
+  const handleCheckIn = async () => {
+    if (!location) {
+      toast.error('Location not available. Please enable location services.')
+      return
+    }
+
+    setCheckingIn(true)
+    try {
+      const response = await attendanceService.checkIn(sessionId, {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        accuracy: location.accuracy
+      })
+
+      if (response.data.data.isFlagged) {
+        toast.warning('Attendance recorded but flagged for review due to GPS distance')
+      } else {
+        toast.success('Attendance recorded successfully!')
+      }
+
+      setTimeout(() => {
+        navigate('/my-attendance')
+      }, 2000)
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to check in')
+    } finally {
+      setCheckingIn(false)
+    }
+  }
+
+  if (user?.role !== 'student') {
+    return (
+      <Layout>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Alert severity="warning">This page is only available for students</Alert>
+        </Container>
+      </Layout>
+    )
+  }
+
+  if (loading) {
+    return (
+      <Layout>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      </Layout>
+    )
+  }
+
+  if (!session) {
+    return (
+      <Layout>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Alert severity="error">Session not found</Alert>
+        </Container>
+      </Layout>
+    )
+  }
+
+  const isWithinRange = distance !== null && distance <= (parseFloat(session.geofenceRadius) + 5)
+
+  return (
+    <Layout>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+              {session.section?.course?.code} - {session.section?.course?.name}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" gutterBottom>
+              Section {session.section?.sectionNumber}
+            </Typography>
+            <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Chip label={`Date: ${session.date}`} size="small" />
+              <Chip label={`Time: ${session.startTime} - ${session.endTime}`} size="small" />
+              {session.section?.classroom && (
+                <Chip
+                  label={`${session.section.classroom.building} ${session.section.classroom.roomNumber}`}
+                  size="small"
+                  variant="outlined"
+                />
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              <LocationOnIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+              Location Status
+            </Typography>
+
+            {locationError ? (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {locationError}
+                <Button
+                  size="small"
+                  onClick={requestLocation}
+                  sx={{ mt: 1 }}
+                >
+                  Retry
+                </Button>
+              </Alert>
+            ) : location ? (
+              <Box sx={{ mt: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" color="text.secondary">
+                      Latitude
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {location.latitude.toFixed(6)}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" color="text.secondary">
+                      Longitude
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {location.longitude.toFixed(6)}
+                    </Typography>
+                  </Grid>
+                  {distance !== null && (
+                    <>
+                      <Grid item xs={12}>
+                        <Typography variant="body2" color="text.secondary">
+                          Distance from Classroom
+                        </Typography>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 700,
+                            color: isWithinRange ? 'success.main' : 'error.main'
+                          }}
+                        >
+                          {distance.toFixed(2)} meters
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Geofence radius: {session.geofenceRadius}m
+                        </Typography>
+                      </Grid>
+                      {!isWithinRange && (
+                        <Grid item xs={12}>
+                          <Alert severity="warning">
+                            You are outside the allowed range. Your attendance may be flagged for review.
+                          </Alert>
+                        </Grid>
+                      )}
+                    </>
+                  )}
+                </Grid>
+              </Box>
+            ) : (
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <CircularProgress />
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  Getting your location...
+                </Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              startIcon={checkingIn ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}
+              onClick={handleCheckIn}
+              disabled={checkingIn || !location || session.status !== 'active'}
+              sx={{ py: 2 }}
+            >
+              {checkingIn ? 'Checking in...' : 'Check In'}
+            </Button>
+            {session.status !== 'active' && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                This session is not active
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
+    </Layout>
+  )
+}
+
+export default GiveAttendance
+
