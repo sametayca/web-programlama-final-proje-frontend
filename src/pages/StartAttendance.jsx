@@ -52,7 +52,16 @@ const StartAttendance = () => {
   const fetchMySections = async () => {
     setLoading(true)
     try {
-      const response = await sectionService.getSections({ instructorId: user.id })
+      // Get current semester and year
+      const currentYear = new Date().getFullYear()
+      const currentMonth = new Date().getMonth()
+      const semester = currentMonth >= 0 && currentMonth < 6 ? 'spring' : 'fall'
+      
+      // Fetch sections for current semester/year (faculty's department courses)
+      const response = await sectionService.getSections({ 
+        semester,
+        year: currentYear
+      })
       setSections(response.data.data || [])
     } catch (err) {
       toast.error('Failed to fetch sections')

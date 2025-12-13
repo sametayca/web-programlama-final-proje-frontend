@@ -178,6 +178,7 @@ export const attendanceService = {
   getMySessions: (params) => api.get('/v1/attendance/sessions/my-sessions', { params }),
   checkIn: (sessionId, data) => api.post(`/v1/attendance/sessions/${sessionId}/checkin`, data),
   getMyAttendance: (params) => api.get('/v1/attendance/my-attendance', { params }),
+  getActiveSessions: () => api.get('/v1/attendance/sessions/active'),
   getReport: (sectionId) => api.get(`/v1/attendance/report/${sectionId}`),
   createExcuseRequest: (data) => api.post('/v1/attendance/excuse-requests', data),
   getExcuseRequests: (params) => api.get('/v1/attendance/excuse-requests', { params }),

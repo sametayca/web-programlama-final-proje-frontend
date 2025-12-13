@@ -17,24 +17,28 @@ import {
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
+  AccessTime as AccessTimeIcon
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { attendanceService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
+import { toast } from 'react-toastify'
 
 const MyAttendance = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [attendanceData, setAttendanceData] = useState([])
+  const [activeSessions, setActiveSessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
     if (user?.role === 'student') {
       fetchMyAttendance()
+      fetchActiveSessions()
     }
   }, [user])
 
@@ -48,6 +52,15 @@ const MyAttendance = () => {
       setError(err.response?.data?.error || 'Failed to fetch attendance data')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchActiveSessions = async () => {
+    try {
+      const response = await attendanceService.getActiveSessions()
+      setActiveSessions(response.data.data || [])
+    } catch (err) {
+      console.error('Failed to fetch active sessions:', err)
     }
   }
 
@@ -105,6 +118,64 @@ const MyAttendance = () => {
           <Alert severity="error" sx={{ mb: 3 }}>
             {error}
           </Alert>
+        )}
+
+        {/* Active Sessions */}
+        {activeSessions.length > 0 && (
+          <Card sx={{ mb: 3, backgroundColor: '#e3f2fd' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                <AccessTimeIcon sx={{ mr: 1 }} />
+                Active Attendance Sessions
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                You have {activeSessions.length} active attendance session{activeSessions.length > 1 ? 's' : ''} today
+              </Typography>
+              <Grid container spacing={2}>
+                {activeSessions.map((session) => (
+                  <Grid item xs={12} sm={6} md={4} key={session.id}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          {session.section?.course?.code}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                          {session.section?.course?.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          <strong>Time:</strong> {session.startTime} - {session.endTime}
+                        </Typography>
+                        {session.section?.classroom && (
+                          <Typography variant="body2">
+                            <strong>Location:</strong> {session.section.classroom.building} {session.section.classroom.roomNumber}
+                          </Typography>
+                        )}
+                        <Box sx={{ mt: 2 }}>
+                          {session.hasCheckedIn ? (
+                            <Chip
+                              icon={<CheckCircleIcon />}
+                              label="Already Checked In"
+                              color="success"
+                              size="small"
+                            />
+                          ) : (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              fullWidth
+                              onClick={() => navigate(`/attendance/give/${session.id}`)}
+                            >
+                              Give Attendance
+                            </Button>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
         )}
 
         {loading ? (
