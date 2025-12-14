@@ -49,7 +49,7 @@ const MyAttendance = () => {
       const response = await attendanceService.getMyAttendance()
       setAttendanceData(response.data.data || [])
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch attendance data')
+      setError(err.response?.data?.error || 'Devamsızlık verileri yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -84,10 +84,10 @@ const MyAttendance = () => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'ok': return 'Good'
-      case 'warning': return 'Warning'
-      case 'critical': return 'Critical'
-      default: return 'Unknown'
+      case 'ok': return 'İyi'
+      case 'warning': return 'Uyarı'
+      case 'critical': return 'Kritik'
+      default: return 'Bilinmiyor'
     }
   }
 
@@ -95,7 +95,7 @@ const MyAttendance = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="warning">This page is only available for students</Alert>
+          <Alert severity="warning">Bu sayfa sadece öğrenciler için kullanılabilir</Alert>
         </Container>
       </Layout>
     )
@@ -107,10 +107,10 @@ const MyAttendance = () => {
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 1 }}>
             <LocationOnIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            My Attendance
+            Devamsızlığım
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            View your attendance statistics for all courses
+            Tüm dersler için devamsızlık istatistiklerinizi görüntüleyin
           </Typography>
         </Box>
 
@@ -126,10 +126,10 @@ const MyAttendance = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                 <AccessTimeIcon sx={{ mr: 1 }} />
-                Active Attendance Sessions
+                Aktif Yoklama Oturumları
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                You have {activeSessions.length} active attendance session{activeSessions.length > 1 ? 's' : ''} today
+                Bugün {activeSessions.length} aktif yoklama oturumunuz var
               </Typography>
               <Grid container spacing={2}>
                 {activeSessions.map((session) => (
@@ -143,18 +143,18 @@ const MyAttendance = () => {
                           {session.section?.course?.name}
                         </Typography>
                         <Typography variant="body2" sx={{ mt: 1 }}>
-                          <strong>Time:</strong> {session.startTime} - {session.endTime}
+                          <strong>Saat:</strong> {session.startTime} - {session.endTime}
                         </Typography>
                         {session.section?.classroom && (
                           <Typography variant="body2">
-                            <strong>Location:</strong> {session.section.classroom.building} {session.section.classroom.roomNumber}
+                            <strong>Konum:</strong> {session.section.classroom.building} {session.section.classroom.roomNumber}
                           </Typography>
                         )}
                         <Box sx={{ mt: 2 }}>
                           {session.hasCheckedIn ? (
                             <Chip
                               icon={<CheckCircleIcon />}
-                              label="Already Checked In"
+                              label="Zaten Yoklama Verildi"
                               color="success"
                               size="small"
                             />
@@ -165,7 +165,7 @@ const MyAttendance = () => {
                               fullWidth
                               onClick={() => navigate(`/attendance/give/${session.id}`)}
                             >
-                              Give Attendance
+                              Yoklama Ver
                             </Button>
                           )}
                         </Box>
@@ -187,10 +187,10 @@ const MyAttendance = () => {
             <CardContent sx={{ textAlign: 'center', py: 8 }}>
               <LocationOnIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
-                No attendance data available
+                Devamsızlık verisi bulunamadı
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Attendance records will appear here once sessions are created
+                Oturumlar oluşturulduğunda devamsızlık kayıtları burada görünecek
               </Typography>
             </CardContent>
           </Card>
@@ -201,7 +201,7 @@ const MyAttendance = () => {
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    Attendance Overview
+                    Devamsızlık Özeti
                   </Typography>
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={attendanceData.map(item => ({
@@ -215,7 +215,7 @@ const MyAttendance = () => {
                       <YAxis domain={[0, 100]} />
                       <Tooltip />
                       <Legend />
-                      <Line type="monotone" dataKey="percentage" stroke="#3b82f6" strokeWidth={2} name="Attendance %" />
+                      <Line type="monotone" dataKey="percentage" stroke="#3b82f6" strokeWidth={2} name="Devamsızlık %" />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -244,13 +244,13 @@ const MyAttendance = () => {
                               size="small"
                             />
                             <Chip
-                              label={`${attendance.attendedSessions || 0}/${attendance.totalSessions || 0} Sessions`}
+                              label={`${attendance.attendedSessions || 0}/${attendance.totalSessions || 0} Oturum`}
                               size="small"
                               variant="outlined"
                             />
                             {attendance.excusedSessions > 0 && (
                               <Chip
-                                label={`${attendance.excusedSessions} Excused`}
+                                label={`${attendance.excusedSessions} Mazeretli`}
                                 size="small"
                                 variant="outlined"
                                 color="info"
@@ -263,7 +263,7 @@ const MyAttendance = () => {
                             {percentage.toFixed(1)}%
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Attendance Rate
+                            Devamsızlık Oranı
                           </Typography>
                         </Box>
                       </Box>
@@ -282,18 +282,18 @@ const MyAttendance = () => {
                           startIcon={<AssignmentIcon />}
                           onClick={() => navigate(`/attendance/excuse/${item.sectionId}`)}
                         >
-                          Request Excuse
+                          Mazeret Talep Et
                         </Button>
                       </Box>
 
                       {attendance.status === 'critical' && (
                         <Alert severity="error" sx={{ mt: 2 }}>
-                          Your attendance is below 70%. Please contact your advisor.
+                          Devamsızlığınız %70'in altında. Lütfen danışmanınızla iletişime geçin.
                         </Alert>
                       )}
                       {attendance.status === 'warning' && (
                         <Alert severity="warning" sx={{ mt: 2 }}>
-                          Your attendance is below 80%. Please improve your attendance.
+                          Devamsızlığınız %80'in altında. Lütfen devamsızlığınızı iyileştirin.
                         </Alert>
                       )}
                     </CardContent>

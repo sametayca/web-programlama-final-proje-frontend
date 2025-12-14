@@ -47,7 +47,7 @@ const GiveAttendance = () => {
       const response = await attendanceService.getSession(sessionId)
       setSession(response.data.data)
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to fetch session')
+      toast.error(err.response?.data?.error || 'Oturum yüklenirken bir hata oluştu')
       navigate('/my-attendance')
     } finally {
       setLoading(false)
@@ -56,7 +56,7 @@ const GiveAttendance = () => {
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser')
+      setLocationError('Tarayıcınız konum servislerini desteklemiyor')
       return
     }
 
@@ -70,7 +70,7 @@ const GiveAttendance = () => {
         setLocationError(null)
       },
       (error) => {
-        setLocationError('Failed to get your location. Please enable location services.')
+        setLocationError('Konumunuz alınamadı. Lütfen konum servislerini etkinleştirin.')
         console.error('Geolocation error:', error)
       },
       {
@@ -121,16 +121,16 @@ const GiveAttendance = () => {
       })
 
       if (response.data.data.isFlagged) {
-        toast.warning('Attendance recorded but flagged for review due to GPS distance')
+        toast.warning('Yoklama kaydedildi ancak GPS mesafesi nedeniyle inceleme için işaretlendi')
       } else {
-        toast.success('Attendance recorded successfully!')
+        toast.success('Yoklama başarıyla kaydedildi!')
       }
 
       setTimeout(() => {
         navigate('/my-attendance')
       }, 2000)
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to check in')
+      toast.error(err.response?.data?.error || 'Yoklama verilemedi')
     } finally {
       setCheckingIn(false)
     }
@@ -140,7 +140,7 @@ const GiveAttendance = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="warning">This page is only available for students</Alert>
+          <Alert severity="warning">Bu sayfa sadece öğrenciler için kullanılabilir</Alert>
         </Container>
       </Layout>
     )
@@ -162,7 +162,7 @@ const GiveAttendance = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="error">Session not found</Alert>
+          <Alert severity="error">Oturum bulunamadı</Alert>
         </Container>
       </Layout>
     )
@@ -179,11 +179,11 @@ const GiveAttendance = () => {
               {session.section?.course?.code} - {session.section?.course?.name}
             </Typography>
             <Typography variant="body1" color="text.secondary" gutterBottom>
-              Section {session.section?.sectionNumber}
+              Bölüm {session.section?.sectionNumber}
             </Typography>
             <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip label={`Date: ${session.date}`} size="small" />
-              <Chip label={`Time: ${session.startTime} - ${session.endTime}`} size="small" />
+              <Chip label={`Tarih: ${session.date}`} size="small" />
+              <Chip label={`Saat: ${session.startTime} - ${session.endTime}`} size="small" />
               {session.section?.classroom && (
                 <Chip
                   label={`${session.section.classroom.building} ${session.section.classroom.roomNumber}`}
@@ -201,7 +201,7 @@ const GiveAttendance = () => {
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 <LocationOnIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Location Map
+                Konum Haritası
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <MapComponent
@@ -222,7 +222,7 @@ const GiveAttendance = () => {
           <CardContent>
             <Typography variant="h6" gutterBottom>
               <LocationOnIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-              Location Status
+              Konum Durumu
             </Typography>
 
             {locationError ? (
@@ -233,7 +233,7 @@ const GiveAttendance = () => {
                   onClick={requestLocation}
                   sx={{ mt: 1 }}
                 >
-                  Retry
+                  Tekrar Dene
                 </Button>
               </Alert>
             ) : location ? (
@@ -241,7 +241,7 @@ const GiveAttendance = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="body2" color="text.secondary">
-                      Latitude
+                      Enlem
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
                       {location.latitude.toFixed(6)}
@@ -249,7 +249,7 @@ const GiveAttendance = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="body2" color="text.secondary">
-                      Longitude
+                      Boylam
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
                       {location.longitude.toFixed(6)}
@@ -259,7 +259,7 @@ const GiveAttendance = () => {
                     <>
                       <Grid item xs={12}>
                         <Typography variant="body2" color="text.secondary">
-                          Distance from Classroom
+                          Sınıftan Mesafe
                         </Typography>
                         <Typography
                           variant="h6"
@@ -268,16 +268,16 @@ const GiveAttendance = () => {
                             color: isWithinRange ? 'success.main' : 'error.main'
                           }}
                         >
-                          {distance.toFixed(2)} meters
+                          {distance.toFixed(2)} metre
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Geofence radius: {session.geofenceRadius}m
+                          Coğrafi sınır yarıçapı: {session.geofenceRadius}m
                         </Typography>
                       </Grid>
                       {!isWithinRange && (
                         <Grid item xs={12}>
                           <Alert severity="warning">
-                            You are outside the allowed range. Your attendance may be flagged for review.
+                            İzin verilen aralığın dışındasınız. Yoklamanız inceleme için işaretlenebilir.
                           </Alert>
                         </Grid>
                       )}
@@ -289,7 +289,7 @@ const GiveAttendance = () => {
               <Box sx={{ textAlign: 'center', py: 4 }}>
                 <CircularProgress />
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Getting your location...
+                  Konumunuz alınıyor...
                 </Typography>
               </Box>
             )}
@@ -307,11 +307,11 @@ const GiveAttendance = () => {
               disabled={checkingIn || !location || session.status !== 'active'}
               sx={{ py: 2 }}
             >
-              {checkingIn ? 'Checking in...' : 'Check In'}
+              {checkingIn ? 'Yoklama veriliyor...' : 'Yoklama Ver'}
             </Button>
             {session.status !== 'active' && (
               <Alert severity="warning" sx={{ mt: 2 }}>
-                This session is not active
+                Bu oturum aktif değil
               </Alert>
             )}
           </CardContent>

@@ -148,6 +148,7 @@ export const courseService = {
 export const sectionService = {
   getSections: (params) => api.get('/v1/sections', { params }),
   getSection: (id) => api.get(`/v1/sections/${id}`),
+  getSection: (id) => api.get(`/v1/sections/${id}`),
   getSectionById: (id) => api.get(`/v1/sections/${id}`),
   createSection: (data) => api.post('/v1/sections', data),
   updateSection: (id, data) => api.put(`/v1/sections/${id}`, data)
@@ -179,11 +180,21 @@ export const attendanceService = {
   checkIn: (sessionId, data) => api.post(`/v1/attendance/sessions/${sessionId}/checkin`, data),
   getMyAttendance: (params) => api.get('/v1/attendance/my-attendance', { params }),
   getActiveSessions: () => api.get('/v1/attendance/sessions/active'),
+  getSectionSessions: (sectionId) => api.get(`/v1/attendance/sessions/section/${sectionId}`),
   getReport: (sectionId) => api.get(`/v1/attendance/report/${sectionId}`),
   createExcuseRequest: (data) => api.post('/v1/attendance/excuse-requests', data),
   getExcuseRequests: (params) => api.get('/v1/attendance/excuse-requests', { params }),
   approveExcuseRequest: (id, data) => api.put(`/v1/attendance/excuse-requests/${id}/approve`, data),
   rejectExcuseRequest: (id, data) => api.put(`/v1/attendance/excuse-requests/${id}/reject`, data)
+}
+
+// Announcement service
+export const announcementService = {
+  getAnnouncements: (params) => api.get('/v1/announcements', { params }),
+  getAnnouncementById: (id) => api.get(`/v1/announcements/${id}`),
+  createAnnouncement: (data) => api.post('/v1/announcements', data),
+  updateAnnouncement: (id, data) => api.put(`/v1/announcements/${id}`, data),
+  deleteAnnouncement: (id) => api.delete(`/v1/announcements/${id}`)
 }
 
 export default api

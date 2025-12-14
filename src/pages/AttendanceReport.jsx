@@ -41,7 +41,7 @@ const AttendanceReport = () => {
 
   useEffect(() => {
     if (user?.role !== 'faculty' && user?.role !== 'admin') {
-      setError('This page is only available for faculty members')
+      setError('Bu sayfa sadece öğretim üyeleri için kullanılabilir')
       setLoading(false)
       return
     }
@@ -60,7 +60,7 @@ const AttendanceReport = () => {
 
       // Check authorization
       if (user.role === 'faculty' && sectionData.instructorId !== user.id) {
-        setError('You are not authorized to view this report')
+        setError('Bu raporu görüntüleme yetkiniz yok')
         setLoading(false)
         return
       }
@@ -74,7 +74,7 @@ const AttendanceReport = () => {
       setReport(reportData.report || [])
     } catch (err) {
       console.error('Error fetching report:', err)
-      setError(err.response?.data?.error || 'Failed to load attendance report')
+      setError(err.response?.data?.error || 'Devamsızlık raporu yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -87,9 +87,9 @@ const AttendanceReport = () => {
   }
 
   const getStatusLabel = (percentage) => {
-    if (percentage >= 80) return 'OK'
-    if (percentage >= 70) return 'Warning'
-    return 'Critical'
+    if (percentage >= 80) return 'İyi'
+    if (percentage >= 70) return 'Uyarı'
+    return 'Kritik'
   }
 
   const handleExportExcel = () => {
@@ -128,7 +128,7 @@ const AttendanceReport = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="warning">This page is only available for faculty members</Alert>
+          <Alert severity="warning">Bu sayfa sadece öğretim üyeleri için kullanılabilir</Alert>
         </Container>
       </Layout>
     )
@@ -156,7 +156,7 @@ const AttendanceReport = () => {
             onClick={() => navigate(-1)}
             sx={{ mt: 2 }}
           >
-            Go Back
+            Geri Dön
           </Button>
         </Container>
       </Layout>
@@ -172,13 +172,13 @@ const AttendanceReport = () => {
             <AssessmentIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
             <Box>
               <Typography variant="h4" component="h1" fontWeight="bold">
-                Attendance Report
+                Devamsızlık Raporu
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 {section?.course?.code} - {section?.course?.name}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Section {section?.sectionNumber} • {section?.semester} {section?.year}
+                Bölüm {section?.sectionNumber} • {section?.semester} {section?.year}
               </Typography>
             </Box>
           </Box>
@@ -188,7 +188,7 @@ const AttendanceReport = () => {
             onClick={handleExportExcel}
             sx={{ ml: 2 }}
           >
-            Export to Excel
+            Excel'e Aktar
           </Button>
         </Box>
 
@@ -197,11 +197,11 @@ const AttendanceReport = () => {
           <CardContent>
             <Box display="flex" gap={2} alignItems="center">
               <Typography variant="body2" color="text.secondary">
-                Filter by Date Range:
+                Tarih Aralığına Göre Filtrele:
               </Typography>
               <TextField
                 type="date"
-                label="Start Date"
+                label="Başlangıç Tarihi"
                 size="small"
                 value={dateFilter.start}
                 onChange={(e) => setDateFilter({ ...dateFilter, start: e.target.value })}
@@ -210,7 +210,7 @@ const AttendanceReport = () => {
               />
               <TextField
                 type="date"
-                label="End Date"
+                label="Bitiş Tarihi"
                 size="small"
                 value={dateFilter.end}
                 onChange={(e) => setDateFilter({ ...dateFilter, end: e.target.value })}
@@ -228,23 +228,23 @@ const AttendanceReport = () => {
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: 'primary.light' }}>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Student Number</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Total Sessions</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Attended</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Excused</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Absent</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Percentage</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Status</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Flagged</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Öğrenci Numarası</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Ad Soyad</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>E-posta</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Toplam Oturum</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Katıldı</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Mazeretli</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Devamsız</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Yüzde</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">Durum</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }} align="center">İşaretli</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {report.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
-                        <Typography color="text.secondary">No students enrolled in this section</Typography>
+                        <Typography color="text.secondary">Bu bölüme kayıtlı öğrenci bulunmamaktadır</Typography>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -301,15 +301,15 @@ const AttendanceReport = () => {
           <Card sx={{ mt: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Summary Statistics
+                Özet İstatistikler
               </Typography>
               <Box display="flex" gap={4} flexWrap="wrap">
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Total Students</Typography>
+                  <Typography variant="body2" color="text.secondary">Toplam Öğrenci</Typography>
                   <Typography variant="h6">{report.length}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Average Attendance</Typography>
+                  <Typography variant="body2" color="text.secondary">Ortalama Devamsızlık</Typography>
                   <Typography variant="h6">
                     {(
                       report.reduce((sum, item) => sum + item.attendance.attendancePercentage, 0) / report.length
@@ -317,19 +317,19 @@ const AttendanceReport = () => {
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Students with Warnings</Typography>
+                  <Typography variant="body2" color="text.secondary">Uyarılı Öğrenciler</Typography>
                   <Typography variant="h6" color="warning.main">
                     {report.filter(item => item.attendance.attendancePercentage < 80 && item.attendance.attendancePercentage >= 70).length}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Students with Critical Status</Typography>
+                  <Typography variant="body2" color="text.secondary">Kritik Durumdaki Öğrenciler</Typography>
                   <Typography variant="h6" color="error.main">
                     {report.filter(item => item.attendance.attendancePercentage < 70).length}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary">Flagged Records</Typography>
+                  <Typography variant="body2" color="text.secondary">İşaretli Kayıtlar</Typography>
                   <Typography variant="h6" color="error.main">
                     {report.reduce((sum, item) => sum + item.flaggedCount, 0)}
                   </Typography>

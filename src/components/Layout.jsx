@@ -35,7 +35,9 @@ import {
   Assignment as AssignmentIcon,
   HowToReg as HowToRegIcon,
   LocationOn as LocationOnIcon,
-  Assessment as AssessmentIcon
+  Assessment as AssessmentIcon,
+  Announcement as AnnouncementIcon,
+  CalendarToday as CalendarTodayIcon
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 
@@ -68,16 +70,19 @@ const Layout = ({ children }) => {
   }
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Ana Sayfa', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Profil', icon: <PersonIcon />, path: '/profile' },
+    { text: 'Duyurular', icon: <AnnouncementIcon />, path: '/announcements' },
+    { text: 'Akademik Takvim', icon: <CalendarTodayIcon />, path: '/academic-calendar' },
     // Part 2 - Academic Management
-    { text: 'Course Catalog', icon: <BookIcon />, path: '/courses', roles: ['student', 'faculty', 'admin'] },
-    { text: 'My Courses', icon: <SchoolIcon />, path: '/my-courses', roles: ['student'] },
-    { text: 'My Grades', icon: <AssessmentIcon />, path: '/grades', roles: ['student'] },
-    { text: 'My Attendance', icon: <LocationOnIcon />, path: '/my-attendance', roles: ['student'] },
+    { text: 'Ders Kataloğu', icon: <BookIcon />, path: '/courses', roles: ['student', 'faculty', 'admin'] },
+    { text: 'Derslerim', icon: <SchoolIcon />, path: '/my-courses', roles: ['student'] },
+    { text: 'Notlarım', icon: <AssessmentIcon />, path: '/grades', roles: ['student'] },
+    { text: 'Devamsızlığım', icon: <LocationOnIcon />, path: '/my-attendance', roles: ['student'] },
     // Faculty only
-    { text: 'Start Attendance', icon: <HowToRegIcon />, path: '/attendance/start', roles: ['faculty'] },
-    { text: 'Excuse Requests', icon: <AssignmentIcon />, path: '/excuse-requests', roles: ['faculty'] },
+    { text: 'Derslerim', icon: <SchoolIcon />, path: '/faculty-courses', roles: ['faculty'] },
+    { text: 'Yoklama Başlat', icon: <HowToRegIcon />, path: '/attendance/start', roles: ['faculty'] },
+    { text: 'Mazeret Talepleri', icon: <AssignmentIcon />, path: '/excuse-requests', roles: ['faculty'] },
   ].filter(item => {
     // Filter menu items based on user role
     if (!item.roles) return true

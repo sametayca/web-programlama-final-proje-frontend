@@ -61,7 +61,7 @@ const Grades = () => {
       setGpa(response.data.data.gpa || 0)
       setTotalCredits(response.data.data.totalCredits || 0)
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch grades')
+      setError(err.response?.data?.error || 'Notlar yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -113,7 +113,7 @@ const Grades = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="warning">This page is only available for students</Alert>
+          <Alert severity="warning">Bu sayfa sadece öğrenciler için kullanılabilir</Alert>
         </Container>
       </Layout>
     )
@@ -126,10 +126,10 @@ const Grades = () => {
           <Box>
             <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 1 }}>
               <SchoolIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-              My Grades
+              Notlarım
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              View your academic performance
+              Akademik performansınızı görüntüleyin
             </Typography>
           </Box>
           <Button
@@ -138,7 +138,7 @@ const Grades = () => {
             onClick={handleDownloadTranscript}
             disabled={downloading}
           >
-            {downloading ? <CircularProgress size={20} /> : 'Download Transcript'}
+            {downloading ? <CircularProgress size={20} /> : 'Transkript İndir'}
           </Button>
         </Box>
 
@@ -147,13 +147,13 @@ const Grades = () => {
             <Card>
               <CardContent>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Current GPA
+                  Mevcut GNO
                 </Typography>
                 <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main' }}>
                   {gpa.toFixed(2)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  {totalCredits} Total Credits
+                  {totalCredits} Toplam Kredi
                 </Typography>
               </CardContent>
             </Card>
@@ -162,13 +162,13 @@ const Grades = () => {
             <Card>
               <CardContent>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Courses Completed
+                  Tamamlanan Dersler
                 </Typography>
                 <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main' }}>
                   {grades.filter(g => g.status === 'completed').length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  {grades.length} Total Enrollments
+                  {grades.length} Toplam Kayıt
                 </Typography>
               </CardContent>
             </Card>
@@ -177,26 +177,26 @@ const Grades = () => {
 
         <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
           <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Semester</InputLabel>
+            <InputLabel>Dönem</InputLabel>
             <Select
               value={semester}
               onChange={(e) => setSemester(e.target.value)}
-              label="Semester"
+              label="Dönem"
             >
-              <MenuItem value="">All Semesters</MenuItem>
-              <MenuItem value="fall">Fall</MenuItem>
-              <MenuItem value="spring">Spring</MenuItem>
-              <MenuItem value="summer">Summer</MenuItem>
+              <MenuItem value="">Tüm Dönemler</MenuItem>
+              <MenuItem value="fall">Güz</MenuItem>
+              <MenuItem value="spring">Bahar</MenuItem>
+              <MenuItem value="summer">Yaz</MenuItem>
             </Select>
           </FormControl>
           <FormControl sx={{ minWidth: 150 }}>
-            <InputLabel>Year</InputLabel>
+            <InputLabel>Yıl</InputLabel>
             <Select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              label="Year"
+              label="Yıl"
             >
-              <MenuItem value="">All Years</MenuItem>
+              <MenuItem value="">Tüm Yıllar</MenuItem>
               {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((y) => (
                 <MenuItem key={y} value={y.toString()}>
                   {y}
@@ -221,7 +221,7 @@ const Grades = () => {
             <CardContent sx={{ textAlign: 'center', py: 8 }}>
               <SchoolIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
               <Typography variant="h6" color="text.secondary">
-                No grades available
+                Not bulunamadı
               </Typography>
             </CardContent>
           </Card>
@@ -234,7 +234,7 @@ const Grades = () => {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      Grade Distribution
+                      Not Dağılımı
                     </Typography>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={(() => {
@@ -263,7 +263,7 @@ const Grades = () => {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      GPA Trend
+                      GNO Trendi
                     </Typography>
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={(() => {
@@ -302,15 +302,15 @@ const Grades = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell><strong>Course Code</strong></TableCell>
-                  <TableCell><strong>Course Name</strong></TableCell>
-                  <TableCell><strong>Section</strong></TableCell>
-                  <TableCell><strong>Semester</strong></TableCell>
-                  <TableCell><strong>Midterm</strong></TableCell>
+                  <TableCell><strong>Ders Kodu</strong></TableCell>
+                  <TableCell><strong>Ders Adı</strong></TableCell>
+                  <TableCell><strong>Bölüm</strong></TableCell>
+                  <TableCell><strong>Dönem</strong></TableCell>
+                  <TableCell><strong>Vize</strong></TableCell>
                   <TableCell><strong>Final</strong></TableCell>
-                  <TableCell><strong>Letter Grade</strong></TableCell>
-                  <TableCell><strong>Grade Point</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
+                  <TableCell><strong>Harf Notu</strong></TableCell>
+                  <TableCell><strong>Not Puanı</strong></TableCell>
+                  <TableCell><strong>Durum</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

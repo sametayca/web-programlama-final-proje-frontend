@@ -54,7 +54,7 @@ const CourseDetail = () => {
       const response = await courseService.getCourseById(id)
       setCourse(response.data.data)
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch course details')
+      setError(err.response?.data?.error || 'Ders detayları yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -62,7 +62,7 @@ const CourseDetail = () => {
 
   const handleEnroll = async (section) => {
     if (user?.role !== 'student') {
-      toast.error('Only students can enroll in courses')
+      toast.error('Sadece öğrenciler derslere kayıt olabilir')
       return
     }
 
@@ -74,11 +74,11 @@ const CourseDetail = () => {
     setEnrolling(true)
     try {
       await enrollmentService.enroll(selectedSection.id)
-      toast.success('Successfully enrolled in course!')
+      toast.success('Derse başarıyla kayıt olundu!')
       setEnrollDialog(false)
       fetchCourse()
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to enroll in course')
+      toast.error(err.response?.data?.error || 'Derse kayıt olunamadı')
     } finally {
       setEnrolling(false)
     }
@@ -100,13 +100,13 @@ const CourseDetail = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="error">{error || 'Course not found'}</Alert>
+          <Alert severity="error">{error || 'Ders bulunamadı'}</Alert>
           <Button
             startIcon={<ArrowBackIcon />}
             onClick={() => navigate('/courses')}
             sx={{ mt: 2 }}
           >
-            Back to Catalog
+            Kataloğa Dön
           </Button>
         </Container>
       </Layout>
@@ -121,7 +121,7 @@ const CourseDetail = () => {
           onClick={() => navigate('/courses')}
           sx={{ mb: 3 }}
         >
-          Back to Catalog
+          Kataloğa Dön
         </Button>
 
         <Card sx={{ mb: 3 }}>
@@ -137,7 +137,7 @@ const CourseDetail = () => {
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
-                <Chip label={`${course.credits} Credits`} sx={{ mb: 1 }} />
+                <Chip label={`${course.credits} Kredi`} sx={{ mb: 1 }} />
                 <Typography variant="body2" color="text.secondary">
                   {course.ects} ECTS
                 </Typography>
@@ -160,7 +160,7 @@ const CourseDetail = () => {
                 target="_blank"
                 sx={{ mt: 2 }}
               >
-                View Syllabus
+                Ders Programını Görüntüle
               </Button>
             )}
           </CardContent>
@@ -170,7 +170,7 @@ const CourseDetail = () => {
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Prerequisites
+                Önkoşullar
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
                 {course.prerequisites.map((prereq) => (
@@ -190,11 +190,11 @@ const CourseDetail = () => {
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-              Available Sections
+              Mevcut Bölümler
             </Typography>
 
             {!course.sections || course.sections.length === 0 ? (
-              <Alert severity="info">No sections available for this course</Alert>
+              <Alert severity="info">Bu ders için bölüm bulunmamaktadır</Alert>
             ) : (
               <Grid container spacing={2}>
                 {course.sections.map((section) => (
@@ -204,7 +204,7 @@ const CourseDetail = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="h6" gutterBottom>
-                              Section {section.sectionNumber}
+                              Bölüm {section.sectionNumber}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 1 }}>
                               <Chip
@@ -239,7 +239,7 @@ const CourseDetail = () => {
                               onClick={() => handleEnroll(section)}
                               disabled={section.enrolledCount >= section.capacity}
                             >
-                              {section.enrolledCount >= section.capacity ? 'Full' : 'Enroll'}
+                              {section.enrolledCount >= section.capacity ? 'Dolu' : 'Kayıt Ol'}
                             </Button>
                           )}
                         </Box>
@@ -253,30 +253,30 @@ const CourseDetail = () => {
         </Card>
 
         <Dialog open={enrollDialog} onClose={() => setEnrollDialog(false)}>
-          <DialogTitle>Confirm Enrollment</DialogTitle>
+          <DialogTitle>Kayıt Onayı</DialogTitle>
           <DialogContent>
             <Typography>
-              Are you sure you want to enroll in <strong>Section {selectedSection?.sectionNumber}</strong>?
+              <strong>Bölüm {selectedSection?.sectionNumber}</strong> dersine kayıt olmak istediğinizden emin misiniz?
             </Typography>
             {selectedSection && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Instructor: {selectedSection.instructor?.firstName} {selectedSection.instructor?.lastName}
+                  Öğretim Üyesi: {selectedSection.instructor?.firstName} {selectedSection.instructor?.lastName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Schedule: {Array.isArray(selectedSection.scheduleJson?.days) && selectedSection.scheduleJson.days.join(', ')}
+                  Program: {Array.isArray(selectedSection.scheduleJson?.days) && selectedSection.scheduleJson.days.join(', ')}
                 </Typography>
               </Box>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEnrollDialog(false)}>Cancel</Button>
+            <Button onClick={() => setEnrollDialog(false)}>İptal</Button>
             <Button
               variant="contained"
               onClick={confirmEnroll}
               disabled={enrolling}
             >
-              {enrolling ? <CircularProgress size={20} /> : 'Confirm'}
+              {enrolling ? <CircularProgress size={20} /> : 'Onayla'}
             </Button>
           </DialogActions>
         </Dialog>

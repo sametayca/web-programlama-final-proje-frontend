@@ -43,7 +43,7 @@ const Gradebook = () => {
 
   useEffect(() => {
     if (user?.role !== 'faculty' && user?.role !== 'admin') {
-      setError('This page is only available for faculty members')
+      setError('Bu sayfa sadece öğretim üyeleri için kullanılabilir')
       setLoading(false)
       return
     }
@@ -86,7 +86,7 @@ const Gradebook = () => {
       setGrades(initialGrades)
     } catch (err) {
       console.error('Error fetching data:', err)
-      setError(err.response?.data?.error || 'Failed to load gradebook')
+      setError(err.response?.data?.error || 'Not defteri yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -120,13 +120,13 @@ const Gradebook = () => {
 
       await Promise.all(savePromises)
 
-      toast.success('Grades saved successfully!')
+      toast.success('Notlar başarıyla kaydedildi!')
       
       // Refresh data
       await fetchData()
     } catch (err) {
       console.error('Error saving grades:', err)
-      toast.error(err.response?.data?.error || 'Failed to save grades')
+      toast.error(err.response?.data?.error || 'Notlar kaydedilemedi')
     } finally {
       setSaving(false)
     }
@@ -136,7 +136,7 @@ const Gradebook = () => {
     try {
       const gradeData = grades[enrollmentId]
       if (!gradeData.midtermGrade && !gradeData.finalGrade) {
-        toast.warning('Please enter at least one grade')
+        toast.warning('Lütfen en az bir not girin')
         return
       }
 
@@ -146,11 +146,11 @@ const Gradebook = () => {
         finalGrade: gradeData.finalGrade || null
       })
 
-      toast.success('Grade saved successfully!')
+      toast.success('Not başarıyla kaydedildi!')
       await fetchData()
     } catch (err) {
       console.error('Error saving grade:', err)
-      toast.error(err.response?.data?.error || 'Failed to save grade')
+      toast.error(err.response?.data?.error || 'Not kaydedilemedi')
     }
   }
 
@@ -201,13 +201,13 @@ const Gradebook = () => {
           <SchoolIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
           <Box>
             <Typography variant="h4" component="h1" fontWeight="bold">
-              Gradebook
+              Not Defteri
             </Typography>
             <Typography variant="body1" color="text.secondary">
               {section?.course?.code} - {section?.course?.name}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Section {section?.sectionNumber} • {section?.semester} {section?.year}
+              Bölüm {section?.sectionNumber} • {section?.semester} {section?.year}
             </Typography>
           </Box>
         </Box>
@@ -221,7 +221,7 @@ const Gradebook = () => {
             disabled={saving}
             sx={{ mb: 2 }}
           >
-            {saving ? 'Saving...' : 'Save All Grades'}
+            {saving ? 'Kaydediliyor...' : 'Tüm Notları Kaydet'}
           </Button>
         </Box>
 
@@ -232,21 +232,21 @@ const Gradebook = () => {
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: 'primary.light' }}>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Student Number</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Name</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Midterm</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Öğrenci Numarası</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Ad Soyad</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>E-posta</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Vize</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Final</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Letter Grade</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Grade Point</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Harf Notu</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Not Puanı</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>İşlemler</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {students.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                        <Typography color="text.secondary">No students enrolled in this section</Typography>
+                        <Typography color="text.secondary">Bu bölüme kayıtlı öğrenci bulunmamaktadır</Typography>
                       </TableCell>
                     </TableRow>
                   ) : (

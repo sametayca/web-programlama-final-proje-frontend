@@ -19,6 +19,12 @@ import GiveAttendance from './pages/GiveAttendance'
 import Gradebook from './pages/Gradebook'
 import AttendanceReport from './pages/AttendanceReport'
 import ExcuseRequests from './pages/ExcuseRequests'
+import Announcements from './pages/Announcements'
+import AnnouncementDetail from './pages/AnnouncementDetail'
+import AnnouncementForm from './pages/AnnouncementForm'
+import AcademicCalendar from './pages/AcademicCalendar'
+import StudentExcuseRequest from './pages/StudentExcuseRequest'
+import FacultyCourses from './pages/FacultyCourses'
 
 function App() {
   const { user, loading } = useAuth()
@@ -139,6 +145,62 @@ function App() {
         element={
           <ProtectedRoute>
             <ExcuseRequests />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/attendance/excuse/:sectionId"
+        element={
+          <ProtectedRoute>
+            <StudentExcuseRequest />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/faculty-courses"
+        element={
+          <ProtectedRoute>
+            <FacultyCourses />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/announcements"
+        element={
+          <ProtectedRoute>
+            <Announcements />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/announcements/new"
+        element={
+          <ProtectedRoute>
+            <AnnouncementForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/announcements/edit/:id"
+        element={
+          <ProtectedRoute>
+            <AnnouncementForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/announcements/:id"
+        element={
+          <ProtectedRoute>
+            <AnnouncementDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/academic-calendar"
+        element={
+          <ProtectedRoute>
+            <AcademicCalendar />
           </ProtectedRoute>
         }
       />

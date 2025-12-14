@@ -51,7 +51,7 @@ const ExcuseRequests = () => {
     if (user?.role === 'faculty' || user?.role === 'admin') {
       fetchRequests()
     } else {
-      setError('This page is only available for faculty members')
+      setError('Bu sayfa sadece öğretim üyeleri için kullanılabilir')
       setLoading(false)
     }
   }, [user])
@@ -65,7 +65,7 @@ const ExcuseRequests = () => {
       setRequests(response.data.data || [])
     } catch (err) {
       console.error('Error fetching excuse requests:', err)
-      setError(err.response?.data?.error || 'Failed to load excuse requests')
+      setError(err.response?.data?.error || 'Mazeret talepleri yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -86,12 +86,12 @@ const ExcuseRequests = () => {
         await attendanceService.approveExcuseRequest(selectedRequest.id, {
           notes: reviewNotes
         })
-        toast.success('Excuse request approved successfully')
+        toast.success('Mazeret talebi başarıyla onaylandı')
       } else if (reviewAction === 'reject') {
         await attendanceService.rejectExcuseRequest(selectedRequest.id, {
           notes: reviewNotes
         })
-        toast.success('Excuse request rejected')
+        toast.success('Mazeret talebi reddedildi')
       }
 
       setReviewDialog(false)
@@ -100,7 +100,7 @@ const ExcuseRequests = () => {
       fetchRequests()
     } catch (err) {
       console.error('Error reviewing request:', err)
-      toast.error(err.response?.data?.error || 'Failed to review request')
+      toast.error(err.response?.data?.error || 'Talep incelenemedi')
     }
   }
 
@@ -125,7 +125,7 @@ const ExcuseRequests = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('tr-TR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -138,7 +138,7 @@ const ExcuseRequests = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="warning">This page is only available for faculty members</Alert>
+          <Alert severity="warning">Bu sayfa sadece öğretim üyeleri için kullanılabilir</Alert>
         </Container>
       </Layout>
     )
@@ -164,10 +164,10 @@ const ExcuseRequests = () => {
           <AssignmentIcon sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
           <Box>
             <Typography variant="h4" component="h1" fontWeight="bold">
-              Excuse Requests
+              Mazeret Talepleri
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Review and manage student excuse requests
+              Öğrenci mazeret taleplerini inceleyin ve yönetin
             </Typography>
           </Box>
         </Box>
@@ -185,9 +185,9 @@ const ExcuseRequests = () => {
             onChange={(e, newValue) => setTabValue(newValue)}
             sx={{ borderBottom: 1, borderColor: 'divider' }}
           >
-            <Tab label={`Pending (${requests.filter(r => r.status === 'pending').length})`} />
-            <Tab label={`Approved (${requests.filter(r => r.status === 'approved').length})`} />
-            <Tab label={`Rejected (${requests.filter(r => r.status === 'rejected').length})`} />
+            <Tab label={`Bekleyen (${requests.filter(r => r.status === 'pending').length})`} />
+            <Tab label={`Onaylanan (${requests.filter(r => r.status === 'approved').length})`} />
+            <Tab label={`Reddedilen (${requests.filter(r => r.status === 'rejected').length})`} />
           </Tabs>
         </Card>
 
@@ -198,13 +198,13 @@ const ExcuseRequests = () => {
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: 'primary.light' }}>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Student</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Course</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Absence Date</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Reason</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Document</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Actions</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Öğrenci</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Ders</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Devamsızlık Tarihi</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Sebep</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Durum</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>Belge</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', color: 'white' }}>İşlemler</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -254,7 +254,7 @@ const ExcuseRequests = () => {
                               startIcon={<VisibilityIcon />}
                               onClick={() => window.open(request.documentUrl, '_blank')}
                             >
-                              View
+                              Görüntüle
                             </Button>
                           ) : (
                             <Typography variant="body2" color="text.secondary">-</Typography>
@@ -270,7 +270,7 @@ const ExcuseRequests = () => {
                                 startIcon={<CheckCircleIcon />}
                                 onClick={() => handleReview(request, 'approve')}
                               >
-                                Approve
+                                Onayla
                               </Button>
                               <Button
                                 size="small"
@@ -279,12 +279,12 @@ const ExcuseRequests = () => {
                                 startIcon={<CancelIcon />}
                                 onClick={() => handleReview(request, 'reject')}
                               >
-                                Reject
+                                Reddet
                               </Button>
                             </Box>
                           ) : (
                             <Typography variant="body2" color="text.secondary">
-                              Reviewed by: {request.reviewedBy?.firstName} {request.reviewedBy?.lastName}
+                              İnceleyen: {request.reviewedBy?.firstName} {request.reviewedBy?.lastName}
                             </Typography>
                           )}
                         </TableCell>
@@ -305,41 +305,41 @@ const ExcuseRequests = () => {
           fullWidth
         >
           <DialogTitle>
-            {reviewAction === 'approve' ? 'Approve' : 'Reject'} Excuse Request
+            {reviewAction === 'approve' ? 'Onayla' : 'Reddet'} Mazeret Talebi
           </DialogTitle>
           <DialogContent>
             {selectedRequest && (
               <Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Student: {selectedRequest.student?.firstName} {selectedRequest.student?.lastName}
+                  Öğrenci: {selectedRequest.student?.firstName} {selectedRequest.student?.lastName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Course: {selectedRequest.session?.section?.course?.code}
+                  Ders: {selectedRequest.session?.section?.course?.code}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Reason: {selectedRequest.reason}
+                  Sebep: {selectedRequest.reason}
                 </Typography>
                 <TextField
                   fullWidth
                   multiline
                   rows={4}
-                  label="Review Notes (Optional)"
+                  label="İnceleme Notları (İsteğe Bağlı)"
                   value={reviewNotes}
                   onChange={(e) => setReviewNotes(e.target.value)}
                   sx={{ mt: 2 }}
-                  placeholder="Add any notes about your decision..."
+                  placeholder="Kararınız hakkında notlar ekleyin..."
                 />
               </Box>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setReviewDialog(false)}>Cancel</Button>
+            <Button onClick={() => setReviewDialog(false)}>İptal</Button>
             <Button
               onClick={handleSubmitReview}
               variant="contained"
               color={reviewAction === 'approve' ? 'success' : 'error'}
             >
-              {reviewAction === 'approve' ? 'Approve' : 'Reject'}
+              {reviewAction === 'approve' ? 'Onayla' : 'Reddet'}
             </Button>
           </DialogActions>
         </Dialog>

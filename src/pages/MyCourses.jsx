@@ -50,7 +50,7 @@ const MyCourses = () => {
       const response = await enrollmentService.getMyCourses()
       setEnrollments(response.data.data || [])
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch courses')
+      setError(err.response?.data?.error || 'Dersler yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -65,11 +65,11 @@ const MyCourses = () => {
     setDropping(true)
     try {
       await enrollmentService.drop(selectedEnrollment.id)
-      toast.success('Successfully dropped from course')
+      toast.success('Dersten başarıyla çıkıldı')
       setDropDialog(false)
       fetchMyCourses()
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to drop course')
+      toast.error(err.response?.data?.error || 'Ders bırakılamadı')
     } finally {
       setDropping(false)
     }
@@ -79,7 +79,7 @@ const MyCourses = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="warning">This page is only available for students</Alert>
+          <Alert severity="warning">Bu sayfa sadece öğrenciler için kullanılabilir</Alert>
         </Container>
       </Layout>
     )
@@ -91,10 +91,10 @@ const MyCourses = () => {
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 1 }}>
             <SchoolIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            My Courses
+            Derslerim
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            View and manage your enrolled courses
+            Kayıtlı olduğunuz dersleri görüntüleyin ve yönetin
           </Typography>
         </Box>
 
@@ -113,14 +113,14 @@ const MyCourses = () => {
             <CardContent sx={{ textAlign: 'center', py: 8 }}>
               <SchoolIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
-                No enrolled courses
+                Kayıtlı ders bulunamadı
               </Typography>
               <Button
                 variant="contained"
                 onClick={() => navigate('/courses')}
                 sx={{ mt: 2 }}
               >
-                Browse Courses
+                Derslere Göz At
               </Button>
             </CardContent>
           </Card>
@@ -140,7 +140,7 @@ const MyCourses = () => {
                         <Box sx={{ flex: 1 }}>
                           <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
                             <Chip label={course?.code} color="primary" size="small" />
-                            <Chip label={`Section ${section?.sectionNumber}`} size="small" variant="outlined" />
+                            <Chip label={`Bölüm ${section?.sectionNumber}`} size="small" variant="outlined" />
                             <Chip
                               label={`${section?.semester} ${section?.year}`}
                               size="small"
@@ -182,7 +182,7 @@ const MyCourses = () => {
                           onClick={() => handleDrop(enrollment)}
                           sx={{ ml: 2 }}
                         >
-                          Drop
+                          Dersi Bırak
                         </Button>
                       </Box>
                     </CardContent>
@@ -194,24 +194,24 @@ const MyCourses = () => {
         )}
 
         <Dialog open={dropDialog} onClose={() => setDropDialog(false)}>
-          <DialogTitle>Confirm Drop</DialogTitle>
+          <DialogTitle>Dersi Bırakmayı Onayla</DialogTitle>
           <DialogContent>
             <Typography>
-              Are you sure you want to drop <strong>{selectedEnrollment?.section?.course?.code} - {selectedEnrollment?.section?.course?.name}</strong>?
+              <strong>{selectedEnrollment?.section?.course?.code} - {selectedEnrollment?.section?.course?.name}</strong> dersini bırakmak istediğinizden emin misiniz?
             </Typography>
             <Alert severity="warning" sx={{ mt: 2 }}>
-              You can only drop courses within the first 4 weeks of enrollment.
+              Dersleri sadece kayıt sonrası ilk 4 hafta içinde bırakabilirsiniz.
             </Alert>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDropDialog(false)}>Cancel</Button>
+            <Button onClick={() => setDropDialog(false)}>İptal</Button>
             <Button
               variant="contained"
               color="error"
               onClick={confirmDrop}
               disabled={dropping}
             >
-              {dropping ? <CircularProgress size={20} /> : 'Confirm Drop'}
+              {dropping ? <CircularProgress size={20} /> : 'Onayla'}
             </Button>
           </DialogActions>
         </Dialog>

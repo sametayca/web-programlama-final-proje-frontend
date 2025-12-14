@@ -64,7 +64,7 @@ const StartAttendance = () => {
       })
       setSections(response.data.data || [])
     } catch (err) {
-      toast.error('Failed to fetch sections')
+      toast.error('Bölümler yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -72,7 +72,7 @@ const StartAttendance = () => {
 
   const handleStartSession = async () => {
     if (!selectedSection || !date || !startTime || !endTime) {
-      toast.error('Please fill all required fields')
+      toast.error('Lütfen tüm zorunlu alanları doldurun')
       return
     }
 
@@ -86,10 +86,10 @@ const StartAttendance = () => {
         geofenceRadius
       })
       setActiveSession(response.data.data)
-      toast.success('Attendance session started successfully!')
+      toast.success('Yoklama oturumu başarıyla başlatıldı!')
       setQrDialog(true)
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to start session')
+      toast.error(err.response?.data?.error || 'Oturum başlatılamadı')
     } finally {
       setCreating(false)
     }
@@ -100,11 +100,11 @@ const StartAttendance = () => {
 
     try {
       await attendanceService.closeSession(activeSession.id)
-      toast.success('Session closed successfully')
+      toast.success('Oturum başarıyla kapatıldı')
       setActiveSession(null)
       setQrDialog(false)
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to close session')
+      toast.error(err.response?.data?.error || 'Oturum kapatılamadı')
     }
   }
 
@@ -112,7 +112,7 @@ const StartAttendance = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="warning">This page is only available for faculty</Alert>
+          <Alert severity="warning">Bu sayfa sadece öğretim üyeleri için kullanılabilir</Alert>
         </Container>
       </Layout>
     )
@@ -124,10 +124,10 @@ const StartAttendance = () => {
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 1 }}>
             <PlayArrowIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Start Attendance Session
+            Yoklama Oturumu Başlat
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Create a new GPS-based attendance session for your course
+            Dersiniz için yeni bir GPS tabanlı yoklama oturumu oluşturun
           </Typography>
         </Box>
 
@@ -136,16 +136,16 @@ const StartAttendance = () => {
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel>Select Section</InputLabel>
+                  <InputLabel>Bölüm Seç</InputLabel>
                   <Select
                     value={selectedSection}
                     onChange={(e) => setSelectedSection(e.target.value)}
-                    label="Select Section"
+                    label="Bölüm Seç"
                     disabled={loading}
                   >
                     {sections.map((section) => (
                       <MenuItem key={section.id} value={section.id}>
-                        {section.course?.code} - {section.course?.name} (Section {section.sectionNumber})
+                        {section.course?.code} - {section.course?.name} (Bölüm {section.sectionNumber})
                       </MenuItem>
                     ))}
                   </Select>
@@ -155,7 +155,7 @@ const StartAttendance = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Date"
+                  label="Tarih"
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
@@ -166,7 +166,7 @@ const StartAttendance = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Geofence Radius (meters)"
+                  label="Coğrafi Sınır Yarıçapı (metre)"
                   type="number"
                   value={geofenceRadius}
                   onChange={(e) => setGeofenceRadius(parseFloat(e.target.value) || 15)}
@@ -177,7 +177,7 @@ const StartAttendance = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Start Time"
+                  label="Başlangıç Saati"
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
@@ -188,7 +188,7 @@ const StartAttendance = () => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="End Time"
+                  label="Bitiş Saati"
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
@@ -205,7 +205,7 @@ const StartAttendance = () => {
                   onClick={handleStartSession}
                   disabled={creating || !selectedSection || !date || !startTime || !endTime}
                 >
-                  {creating ? 'Starting...' : 'Start Attendance Session'}
+                  {creating ? 'Başlatılıyor...' : 'Yoklama Oturumunu Başlat'}
                 </Button>
               </Grid>
             </Grid>
@@ -213,12 +213,12 @@ const StartAttendance = () => {
         </Card>
 
         <Dialog open={qrDialog} onClose={() => setQrDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Attendance Session Started</DialogTitle>
+          <DialogTitle>Yoklama Oturumu Başlatıldı</DialogTitle>
           <DialogContent>
             {activeSession && (
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <Typography variant="h6" gutterBottom>
-                  QR Code (Backup Method)
+                  QR Kod (Yedek Yöntem)
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
                   <Chip
@@ -228,16 +228,16 @@ const StartAttendance = () => {
                   />
                 </Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Students can use this QR code as a backup method
+                  Öğrenciler bu QR kodu yedek yöntem olarak kullanabilir
                 </Typography>
                 <Alert severity="info" sx={{ mt: 2 }}>
-                  Session will expire in 30 minutes
+                  Oturum 30 dakika içinde sona erecek
                 </Alert>
               </Box>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setQrDialog(false)}>Close</Button>
+            <Button onClick={() => setQrDialog(false)}>Kapat</Button>
             {activeSession && (
               <Button
                 variant="contained"
@@ -245,7 +245,7 @@ const StartAttendance = () => {
                 startIcon={<StopIcon />}
                 onClick={handleCloseSession}
               >
-                Close Session
+                Oturumu Kapat
               </Button>
             )}
           </DialogActions>

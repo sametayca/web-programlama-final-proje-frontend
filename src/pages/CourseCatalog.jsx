@@ -70,7 +70,7 @@ const CourseCatalog = () => {
       setCourses(response.data.data.courses || [])
       setPagination(response.data.data.pagination || { totalPages: 1, totalCourses: 0 })
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to fetch courses')
+      setError(err.response?.data?.error || 'Dersler yüklenirken bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -92,10 +92,10 @@ const CourseCatalog = () => {
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 1 }}>
             <SchoolIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Course Catalog
+            Ders Kataloğu
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Browse and search for available courses
+            Mevcut dersleri görüntüleyin ve arayın
           </Typography>
         </Box>
 
@@ -103,7 +103,7 @@ const CourseCatalog = () => {
           <TextField
             fullWidth
             variant="outlined"
-            placeholder="Search courses by code or name..."
+            placeholder="Ders koduna veya adına göre ara..."
             value={searchTerm}
             onChange={handleSearch}
             InputProps={{
@@ -116,13 +116,13 @@ const CourseCatalog = () => {
             sx={{ flex: 1, minWidth: 200 }}
           />
           <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Department</InputLabel>
+            <InputLabel>Bölüm</InputLabel>
             <Select
               value={selectedDepartment}
               onChange={handleDepartmentChange}
-              label="Department"
+              label="Bölüm"
             >
-              <MenuItem value="">All Departments</MenuItem>
+              <MenuItem value="">Tüm Bölümler</MenuItem>
               {departments.map((dept) => (
                 <MenuItem key={dept.id} value={dept.id}>
                   {dept.name}
@@ -146,10 +146,10 @@ const CourseCatalog = () => {
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <BookIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h6" color="text.secondary">
-              No courses found
+              Ders bulunamadı
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Try adjusting your search or filters
+              Arama veya filtrelerinizi değiştirmeyi deneyin
             </Typography>
           </Box>
         ) : (
@@ -178,7 +178,7 @@ const CourseCatalog = () => {
                           sx={{ fontWeight: 600 }}
                         />
                         <Chip
-                          label={`${course.credits} Credits`}
+                          label={`${course.credits} Kredi`}
                           size="small"
                           variant="outlined"
                         />
