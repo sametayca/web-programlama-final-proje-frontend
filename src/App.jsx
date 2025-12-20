@@ -1,30 +1,48 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Box, CircularProgress } from '@mui/material'
 import { useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import VerifyEmail from './pages/VerifyEmail'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
-import Dashboard from './pages/Dashboard'
-import Profile from './pages/Profile'
-import CourseCatalog from './pages/CourseCatalog'
-import CourseDetail from './pages/CourseDetail'
-import MyCourses from './pages/MyCourses'
-import Grades from './pages/Grades'
-import MyAttendance from './pages/MyAttendance'
-import StartAttendance from './pages/StartAttendance'
-import GiveAttendance from './pages/GiveAttendance'
-import Gradebook from './pages/Gradebook'
-import AttendanceReport from './pages/AttendanceReport'
-import ExcuseRequests from './pages/ExcuseRequests'
-import Announcements from './pages/Announcements'
-import AnnouncementDetail from './pages/AnnouncementDetail'
-import AnnouncementForm from './pages/AnnouncementForm'
-import AcademicCalendar from './pages/AcademicCalendar'
-import StudentExcuseRequest from './pages/StudentExcuseRequest'
-import FacultyCourses from './pages/FacultyCourses'
+
+// Lazy load components
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Profile = lazy(() => import('./pages/Profile'))
+const CourseCatalog = lazy(() => import('./pages/CourseCatalog'))
+const CourseDetail = lazy(() => import('./pages/CourseDetail'))
+const MyCourses = lazy(() => import('./pages/MyCourses'))
+const Grades = lazy(() => import('./pages/Grades'))
+const MyAttendance = lazy(() => import('./pages/MyAttendance'))
+const StartAttendance = lazy(() => import('./pages/StartAttendance'))
+const GiveAttendance = lazy(() => import('./pages/GiveAttendance'))
+const Gradebook = lazy(() => import('./pages/Gradebook'))
+const AttendanceReport = lazy(() => import('./pages/AttendanceReport'))
+const ExcuseRequests = lazy(() => import('./pages/ExcuseRequests'))
+const Announcements = lazy(() => import('./pages/Announcements'))
+const AnnouncementDetail = lazy(() => import('./pages/AnnouncementDetail'))
+const AnnouncementForm = lazy(() => import('./pages/AnnouncementForm'))
+const AcademicCalendar = lazy(() => import('./pages/AcademicCalendar'))
+const StudentExcuseRequest = lazy(() => import('./pages/StudentExcuseRequest'))
+const FacultyCourses = lazy(() => import('./pages/FacultyCourses'))
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)'
+    }}
+  >
+    <CircularProgress sx={{ color: 'white' }} size={60} />
+  </Box>
+)
 
 function App() {
   const { user, loading } = useAuth()
@@ -46,12 +64,13 @@ function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+        <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/dashboard"
         element={
@@ -204,8 +223,9 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
-    </Routes>
+        <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
+      </Routes>
+    </Suspense>
   )
 }
 

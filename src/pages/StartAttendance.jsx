@@ -28,6 +28,7 @@ import {
 import { sectionService, attendanceService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
+import QRCodeDisplay from '../components/QRCodeDisplay'
 import { toast } from 'react-toastify'
 
 const StartAttendance = () => {
@@ -217,18 +218,13 @@ const StartAttendance = () => {
           <DialogContent>
             {activeSession && (
               <Box sx={{ textAlign: 'center', py: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  QR Kod (Yedek Yöntem)
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-                  <Chip
-                    label={activeSession.qrCode}
-                    icon={<QrCodeIcon />}
-                    sx={{ fontSize: '1rem', p: 2 }}
-                  />
-                </Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Öğrenciler bu QR kodu yedek yöntem olarak kullanabilir
+                <QRCodeDisplay
+                  value={activeSession.qrCode}
+                  size={256}
+                  title="Yoklama QR Kodu"
+                />
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                  Öğrenciler bu QR kodu okutarak yoklama verebilir
                 </Typography>
                 <Alert severity="info" sx={{ mt: 2 }}>
                   Oturum 30 dakika içinde sona erecek

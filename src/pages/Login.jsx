@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
 import {
   Container,
   Paper,
@@ -30,10 +32,9 @@ import {
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 import { toast } from 'react-toastify'
+import { loginSchema } from '../validation/authSchemas'
 
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
@@ -41,12 +42,15 @@ const Login = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(loginSchema)
+  })
+
+  const onSubmit = async (data) => {
     setError('')
     setLoading(true)
 
-    const result = await login(email, password)
+    const result = await login(data.email, data.password)
 
     if (result.success) {
       toast.success('Giriş başarılı! Hoş geldiniz! 🎉')
@@ -184,17 +188,16 @@ const Login = () => {
                     </Alert>
                   )}
 
-                  <Box component="form" onSubmit={handleSubmit}>
+                  <Box component="form" onSubmit={handleSubmit(onSubmit)}>
                     <TextField
                       fullWidth
-                      required
                       id="email"
                       label="E-posta Adresi"
-                      name="email"
                       autoComplete="email"
                       autoFocus
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      {...register('email')}
+                      error={!!errors.email}
+                      helperText={errors.email?.message}
                       sx={{ 
                         mb: 2.5,
                         '& .MuiOutlinedInput-root': {
@@ -219,14 +222,13 @@ const Login = () => {
                     />
                     <TextField
                       fullWidth
-                      required
-                      name="password"
                       label="Şifre"
                       type={showPassword ? 'text' : 'password'}
                       id="password"
                       autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      {...register('password')}
+                      error={!!errors.password}
+                      helperText={errors.password?.message}
                       sx={{ 
                         mb: 3,
                         '& .MuiOutlinedInput-root': {

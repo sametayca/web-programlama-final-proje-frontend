@@ -1,7 +1,51 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useReducer, useEffect } from 'react'
 import { authService } from '../services/api'
 
 const AuthContext = createContext(null)
+
+// Action types
+const AUTH_ACTIONS = {
+  SET_USER: 'SET_USER',
+  SET_LOADING: 'SET_LOADING',
+  LOGOUT: 'LOGOUT',
+  UPDATE_USER: 'UPDATE_USER'
+}
+
+// Reducer function
+const authReducer = (state, action) => {
+  switch (action.type) {
+    case AUTH_ACTIONS.SET_USER:
+      return {
+        ...state,
+        user: action.payload,
+        loading: false
+      }
+    case AUTH_ACTIONS.SET_LOADING:
+      return {
+        ...state,
+        loading: action.payload
+      }
+    case AUTH_ACTIONS.LOGOUT:
+      return {
+        ...state,
+        user: null,
+        loading: false
+      }
+    case AUTH_ACTIONS.UPDATE_USER:
+      return {
+        ...state,
+        user: { ...state.user, ...action.payload }
+      }
+    default:
+      return state
+  }
+}
+
+// Initial state
+const initialState = {
+  user: null,
+  loading: true
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -12,8 +56,7 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [state, dispatch] = useReducer(authReducer, initialState)
 
   useEffect(() => {
     // Check if user is logged in
@@ -21,11 +64,11 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user')
 
     if (token && storedUser) {
-      setUser(JSON.parse(storedUser))
+      dispatch({ type: AUTH_ACTIONS.SET_USER, payload: JSON.parse(storedUser) })
       // Verify token by getting profile
       authService.getProfile()
         .then((response) => {
-          setUser(response.data.data)
+          dispatch({ type: AUTH_ACTIONS.SET_USER, payload: response.data.data })
           localStorage.setItem('user', JSON.stringify(response.data.data))
         })
         .catch(() => {
@@ -33,13 +76,10 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('token')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('user')
-          setUser(null)
-        })
-        .finally(() => {
-          setLoading(false)
+          dispatch({ type: AUTH_ACTIONS.LOGOUT })
         })
     } else {
-      setLoading(false)
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false })
     }
   }, [])
 
@@ -51,7 +91,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token)
       localStorage.setItem('refreshToken', refreshToken)
       localStorage.setItem('user', JSON.stringify(user))
-      setUser(user)
+      dispatch({ type: AUTH_ACTIONS.SET_USER, payload: user })
 
       return { success: true }
     } catch (error) {
@@ -85,19 +125,20 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('token')
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('user')
-      setUser(null)
+      dispatch({ type: AUTH_ACTIONS.LOGOUT })
       window.location.href = '/login'
     }
   }
 
   const updateUser = (userData) => {
-    setUser(userData)
-    localStorage.setItem('user', JSON.stringify(userData))
+    dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: userData })
+    const updatedUser = { ...state.user, ...userData }
+    localStorage.setItem('user', JSON.stringify(updatedUser))
   }
 
   const value = {
-    user,
-    loading,
+    user: state.user,
+    loading: state.loading,
     login,
     register,
     logout,
