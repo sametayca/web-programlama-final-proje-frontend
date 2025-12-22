@@ -115,8 +115,8 @@ const Wallet = () => {
     try {
       setProcessing(true)
       
-      // Direct balance top-up (no Stripe)
-      const response = await walletService.devTopUp(data.amount)
+      // Direct balance top-up
+      const response = await walletService.topUp(data.amount)
       
       if (response.data.success) {
         toast.success(`${data.amount} TL bakiye başarıyla eklendi!`)
