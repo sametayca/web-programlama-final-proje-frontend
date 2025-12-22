@@ -37,7 +37,12 @@ import {
   LocationOn as LocationOnIcon,
   Assessment as AssessmentIcon,
   Announcement as AnnouncementIcon,
-  CalendarToday as CalendarTodayIcon
+  CalendarToday as CalendarTodayIcon,
+  Restaurant as RestaurantIcon,
+  AccountBalanceWallet as WalletIcon,
+  Event as EventIcon,
+  Schedule as ScheduleIcon,
+  MeetingRoom as MeetingRoomIcon
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
 
@@ -83,6 +88,12 @@ const Layout = ({ children }) => {
     { text: 'Derslerim', icon: <SchoolIcon />, path: '/faculty-courses', roles: ['faculty'] },
     { text: 'Yoklama Başlat', icon: <HowToRegIcon />, path: '/attendance/start', roles: ['faculty'] },
     { text: 'Mazeret Talepleri', icon: <AssignmentIcon />, path: '/excuse-requests', roles: ['faculty'] },
+    // Part 3 - New Features
+    { text: 'Yemek Menüsü', icon: <RestaurantIcon />, path: '/meals/menu', roles: ['student'] },
+    { text: 'Cüzdan', icon: <WalletIcon />, path: '/wallet', roles: ['student'] },
+    { text: 'Etkinlikler', icon: <EventIcon />, path: '/events' },
+    { text: 'Ders Programım', icon: <ScheduleIcon />, path: '/schedule', roles: ['student'] },
+    { text: 'Sınıf Rezervasyonu', icon: <MeetingRoomIcon />, path: '/reservations' },
   ].filter(item => {
     // Filter menu items based on user role
     if (!item.roles) return true

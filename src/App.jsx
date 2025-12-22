@@ -29,6 +29,27 @@ const AcademicCalendar = lazy(() => import('./pages/AcademicCalendar'))
 const StudentExcuseRequest = lazy(() => import('./pages/StudentExcuseRequest'))
 const FacultyCourses = lazy(() => import('./pages/FacultyCourses'))
 
+// Part 3 - Meal System
+const MealMenu = lazy(() => import('./pages/meals/MealMenu'))
+const MealReservations = lazy(() => import('./pages/meals/MealReservations'))
+const MealScan = lazy(() => import('./pages/meals/MealScan'))
+
+// Part 3 - Wallet
+const Wallet = lazy(() => import('./pages/wallet/Wallet'))
+
+// Part 3 - Events
+const Events = lazy(() => import('./pages/events/Events'))
+const EventDetail = lazy(() => import('./pages/events/EventDetail'))
+const MyEvents = lazy(() => import('./pages/events/MyEvents'))
+const EventCheckIn = lazy(() => import('./pages/events/EventCheckIn'))
+
+// Part 3 - Schedule
+const MySchedule = lazy(() => import('./pages/schedule/MySchedule'))
+const GenerateSchedule = lazy(() => import('./pages/schedule/GenerateSchedule'))
+
+// Part 3 - Classroom Reservations
+const ClassroomReservations = lazy(() => import('./pages/reservations/ClassroomReservations'))
+
 // Loading fallback component
 const LoadingFallback = () => (
   <Box
@@ -223,6 +244,105 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      {/* Part 3 - Meal System Routes */}
+      <Route
+        path="/meals/menu"
+        element={
+          <ProtectedRoute>
+            <MealMenu />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/meals/reservations"
+        element={
+          <ProtectedRoute requiredRole="student">
+            <MealReservations />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/meals/scan"
+        element={
+          <ProtectedRoute requiredRole="staff">
+            <MealScan />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Part 3 - Wallet Route */}
+      <Route
+        path="/wallet"
+        element={
+          <ProtectedRoute requiredRole="student">
+            <Wallet />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Part 3 - Event Routes */}
+      <Route
+        path="/events"
+        element={
+          <ProtectedRoute>
+            <Events />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id"
+        element={
+          <ProtectedRoute>
+            <EventDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-events"
+        element={
+          <ProtectedRoute>
+            <MyEvents />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/checkin"
+        element={
+          <ProtectedRoute requiredRole={['staff', 'faculty']}>
+            <EventCheckIn />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Part 3 - Schedule Routes */}
+      <Route
+        path="/schedule"
+        element={
+          <ProtectedRoute requiredRole="student">
+            <MySchedule />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/scheduling/generate"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <GenerateSchedule />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Part 3 - Classroom Reservations Route */}
+      <Route
+        path="/reservations"
+        element={
+          <ProtectedRoute>
+            <ClassroomReservations />
+          </ProtectedRoute>
+        }
+      />
+
         <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
       </Routes>
     </Suspense>
