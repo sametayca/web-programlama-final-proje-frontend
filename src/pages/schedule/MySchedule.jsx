@@ -48,10 +48,26 @@ const MySchedule = () => {
       const response = await schedulingService.getMySchedule({ semester, year })
       const scheduleData = response.data.data || []
       console.log('📅 Schedule data from backend:', scheduleData)
-      setSchedule(scheduleData)
+      
+      // Filter out invalid entries and normalize data
+      const validSchedule = scheduleData.filter(item => {
+        if (!item) return false
+        // Check if day exists and is valid
+        const day = item.day || item.days || item.dayOfWeek
+        if (!day) {
+          console.warn('⚠️ Item missing day field:', item)
+          return false
+        }
+        return true
+      }).map(item => ({
+        ...item,
+        day: item.day || item.days || item.dayOfWeek || 'Monday'
+      }))
+      
+      setSchedule(validSchedule)
       
       // Convert to FullCalendar events (will be updated when calendar view changes)
-      const calendarEvents = convertToCalendarEvents(scheduleData)
+      const calendarEvents = convertToCalendarEvents(validSchedule)
       console.log('📆 Calendar events:', calendarEvents)
       setEvents(calendarEvents)
     } catch (err) {
@@ -107,15 +123,18 @@ const MySchedule = () => {
     console.log('📅 Week start (Monday):', weekStart.toISOString())
     
     const events = scheduleData.map((item, index) => {
-      if (!item.day) {
-        console.warn('⚠️ Item missing day:', item)
+      // Try multiple possible field names for day
+      const day = item.day || item.days || item.dayOfWeek
+      
+      if (!day) {
+        console.warn('⚠️ Item missing day field:', item)
         return null
       }
 
-      const dayOfWeek = dayMap[item.day]
+      const dayOfWeek = dayMap[day]
       
       if (dayOfWeek === undefined) {
-        console.warn(`⚠️ Unknown day: "${item.day}"`, item)
+        console.warn(`⚠️ Unknown day: "${day}"`, item)
         return null
       }
 
