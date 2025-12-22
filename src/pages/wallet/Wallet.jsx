@@ -115,7 +115,11 @@ const Wallet = () => {
     try {
       setProcessing(true)
       
-      // Try Stripe first, fallback to development mode if Stripe is not configured
+      // Check if we're in production environment
+      const isProduction = window.location.hostname.includes('railway.app') || 
+                          window.location.protocol === 'https:'
+      
+      // Try Stripe payment
       try {
         const response = await walletService.topUp(data.amount)
         
@@ -136,17 +140,31 @@ const Wallet = () => {
           fetchWalletData()
         }
       } catch (stripeError) {
-        // If Stripe is not configured, use development mode
+        // In production, don't try dev endpoint
+        if (isProduction) {
+          const errorMessage = stripeError.response?.data?.error || 
+                             'Ödeme sistemi yapılandırılmamış. Lütfen yönetici ile iletişime geçin.'
+          toast.error(errorMessage)
+          throw stripeError
+        }
+        
+        // In development, fallback to dev endpoint if Stripe is not configured
         if (stripeError.response?.data?.error?.includes('not configured')) {
           toast.info('Geliştirme modu: Bakiye doğrudan ekleniyor...')
-          const devResponse = await walletService.devTopUp(data.amount)
-          
-          if (devResponse.data.success) {
-            toast.success(`${data.amount} TL bakiye eklendi (Geliştirme modu)`)
-            setTopUpDialog(false)
-            reset()
-            fetchWalletData()
-            fetchTransactions()
+          try {
+            const devResponse = await walletService.devTopUp(data.amount)
+            
+            if (devResponse.data.success) {
+              toast.success(`${data.amount} TL bakiye eklendi (Geliştirme modu)`)
+              setTopUpDialog(false)
+              reset()
+              fetchWalletData()
+              fetchTransactions()
+            }
+          } catch (devError) {
+            // Dev endpoint also failed
+            toast.error(devError.response?.data?.error || 'Geliştirme modu da kullanılamıyor')
+            throw devError
           }
         } else {
           // Re-throw if it's a different error
@@ -154,7 +172,9 @@ const Wallet = () => {
         }
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'İşlem başarısız')
+      const errorMessage = err.response?.data?.error || 'İşlem başarısız'
+      toast.error(errorMessage)
+      console.error('Top-up error:', err)
     } finally {
       setProcessing(false)
     }
