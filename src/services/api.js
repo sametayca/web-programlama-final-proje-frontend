@@ -104,7 +104,10 @@ api.interceptors.response.use(
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
-        window.location.href = '/login'
+        // Don't redirect if already on login page or if it's a navigation request
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login?session=expired'
+        }
         return Promise.reject(refreshError)
       }
     }

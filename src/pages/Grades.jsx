@@ -57,11 +57,20 @@ const Grades = () => {
       if (year) params.year = parseInt(year)
       
       const response = await gradeService.getMyGrades(params)
-      setGrades(response.data.data.enrollments || [])
-      setGpa(response.data.data.gpa || 0)
-      setTotalCredits(response.data.data.totalCredits || 0)
+      console.log('Grades response:', response.data)
+      const enrollments = response.data.data?.enrollments || response.data.data || []
+      setGrades(enrollments)
+      setGpa(response.data.data?.gpa || 0)
+      setTotalCredits(response.data.data?.totalCredits || 0)
     } catch (err) {
-      setError(err.response?.data?.error || 'Notlar yüklenirken bir hata oluştu')
+      console.error('Error fetching grades:', err)
+      const errorMessage = err.response?.data?.error || err.message || 'Notlar yüklenirken bir hata oluştu'
+      setError(errorMessage)
+      // If it's a 404 or empty data, don't show error, just empty state
+      if (err.response?.status === 404 || errorMessage.includes('not found')) {
+        setError(null)
+        setGrades([])
+      }
     } finally {
       setLoading(false)
     }
@@ -165,7 +174,7 @@ const Grades = () => {
                   Tamamlanan Dersler
                 </Typography>
                 <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main' }}>
-                  {grades.filter(g => g.status === 'completed').length}
+                  {grades.filter(g => (g.status === 'completed' || g.letterGrade)).length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                   {grades.length} Toplam Kayıt
@@ -240,8 +249,9 @@ const Grades = () => {
                       <BarChart data={(() => {
                         const gradeCounts = { A: 0, B: 0, C: 0, D: 0, F: 0 }
                         grades.forEach(g => {
-                          if (g.letterGrade && gradeCounts.hasOwnProperty(g.letterGrade)) {
-                            gradeCounts[g.letterGrade]++
+                          const letterGrade = g.letterGrade
+                          if (letterGrade && gradeCounts.hasOwnProperty(letterGrade)) {
+                            gradeCounts[letterGrade]++
                           }
                         })
                         return Object.entries(gradeCounts).map(([grade, count]) => ({ grade, count }))
@@ -270,13 +280,19 @@ const Grades = () => {
                         // Group by semester/year and calculate GPA for each
                         const semesterData = {}
                         grades.forEach(g => {
-                          if (g.section && g.gradePoint !== null) {
-                            const key = `${g.section.semester}-${g.section.year}`
+                          const section = g.section || g
+                          const course = section?.course || g.course
+                          const semester = section?.semester || g.semester
+                          const year = section?.year || g.year
+                          const gradePoint = g.gradePoint
+                          
+                          if (semester && year && gradePoint !== null && gradePoint !== undefined) {
+                            const key = `${semester}-${year}`
                             if (!semesterData[key]) {
                               semesterData[key] = { semester: key, totalPoints: 0, totalCredits: 0 }
                             }
-                            const credits = g.section.course?.credits || 0
-                            semesterData[key].totalPoints += (g.gradePoint * credits)
+                            const credits = course?.credits || g.credits || 0
+                            semesterData[key].totalPoints += (parseFloat(gradePoint) * credits)
                             semesterData[key].totalCredits += credits
                           }
                         })
@@ -315,22 +331,26 @@ const Grades = () => {
               </TableHead>
               <TableBody>
                 {grades.map((enrollment) => {
-                  const section = enrollment.section
-                  const course = section?.course
+                  const section = enrollment.section || enrollment
+                  const course = section?.course || enrollment.course
                   
                   return (
-                    <TableRow key={enrollment.id}>
-                      <TableCell>{course?.code}</TableCell>
-                      <TableCell>{course?.name}</TableCell>
-                      <TableCell>{section?.sectionNumber}</TableCell>
+                    <TableRow key={enrollment.id || enrollment.enrollmentId || Math.random()}>
+                      <TableCell>{course?.code || enrollment.courseCode || '-'}</TableCell>
+                      <TableCell>{course?.name || enrollment.courseName || '-'}</TableCell>
+                      <TableCell>{section?.sectionNumber || enrollment.sectionNumber || '-'}</TableCell>
                       <TableCell>
-                        {section?.semester} {section?.year}
+                        {section?.semester || enrollment.semester || '-'} {section?.year || enrollment.year || ''}
                       </TableCell>
                       <TableCell>
-                        {enrollment.midtermGrade !== null ? enrollment.midtermGrade.toFixed(2) : '-'}
+                        {enrollment.midtermGrade !== null && enrollment.midtermGrade !== undefined 
+                          ? parseFloat(enrollment.midtermGrade).toFixed(2) 
+                          : '-'}
                       </TableCell>
                       <TableCell>
-                        {enrollment.finalGrade !== null ? enrollment.finalGrade.toFixed(2) : '-'}
+                        {enrollment.finalGrade !== null && enrollment.finalGrade !== undefined 
+                          ? parseFloat(enrollment.finalGrade).toFixed(2) 
+                          : '-'}
                       </TableCell>
                       <TableCell>
                         {enrollment.letterGrade ? (
@@ -344,11 +364,13 @@ const Grades = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {enrollment.gradePoint !== null ? enrollment.gradePoint.toFixed(2) : '-'}
+                        {enrollment.gradePoint !== null && enrollment.gradePoint !== undefined 
+                          ? parseFloat(enrollment.gradePoint).toFixed(2) 
+                          : '-'}
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={enrollment.status}
+                          label={enrollment.status || 'enrolled'}
                           size="small"
                           variant="outlined"
                         />

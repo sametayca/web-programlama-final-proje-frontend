@@ -25,6 +25,8 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import { tr } from 'date-fns/locale/tr'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { QRCodeSVG } from 'qrcode.react'
 import Layout from '../../components/Layout'
@@ -35,10 +37,12 @@ import {
   Place, 
   LocalFireDepartment,
   Spa,
-  FitnessCenter
+  FitnessCenter,
+  BookmarkBorder
 } from '@mui/icons-material'
 
 const MealMenu = () => {
+  const navigate = useNavigate()
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [menus, setMenus] = useState([])
   const [cafeterias, setCafeterias] = useState([])
@@ -56,7 +60,10 @@ const MealMenu = () => {
   const [reservationData, setReservationData] = useState(null)
 
   useEffect(() => {
-    fetchCafeterias()
+    fetchCafeterias().catch(err => {
+      console.error('Error fetching cafeterias:', err)
+      setError('Kafeteryalar yüklenemedi')
+    })
   }, [])
 
   useEffect(() => {
@@ -80,9 +87,10 @@ const MealMenu = () => {
       setLoading(true)
       setError(null)
       const dateStr = selectedDate.toISOString().split('T')[0]
-      const response = await mealService.getMenus({ date: dateStr, available: true })
+      const response = await mealService.getMenus({ date: dateStr })
       setMenus(response.data.data || [])
     } catch (err) {
+      console.error('Error fetching menus:', err)
       setError(err.response?.data?.error || 'Menüler yüklenemedi')
     } finally {
       setLoading(false)
@@ -130,33 +138,20 @@ const MealMenu = () => {
     return types[type] || { label: type, color: 'default' }
   }
 
-  const parseItemsJson = (itemsJson) => {
-    try {
-      if (typeof itemsJson === 'string') {
-        return JSON.parse(itemsJson)
-      }
-      return itemsJson || []
-    } catch {
-      return []
-    }
-  }
-
-  const parseNutritionJson = (nutritionJson) => {
-    try {
-      if (typeof nutritionJson === 'string') {
-        return JSON.parse(nutritionJson)
-      }
-      return nutritionJson || {}
-    } catch {
-      return {}
-    }
+  const getMenuItems = (menu) => {
+    const items = []
+    if (menu.mainCourse) items.push({ name: menu.mainCourse, type: 'main' })
+    if (menu.sideDish) items.push({ name: menu.sideDish, type: 'side' })
+    if (menu.soup) items.push({ name: menu.soup, type: 'soup' })
+    if (menu.salad) items.push({ name: menu.salad, type: 'salad' })
+    if (menu.dessert) items.push({ name: menu.dessert, type: 'dessert' })
+    return items
   }
 
   const renderMenuCard = (menu) => {
     const mealType = getMealTypeLabel(menu.mealType)
-    const available = menu.availableCapacity > 0
-    const items = parseItemsJson(menu.itemsJson)
-    const nutrition = parseNutritionJson(menu.nutritionJson)
+    const available = (menu.availableCapacity || 0) > 0
+    const items = getMenuItems(menu)
     
     return (
       <Grid item xs={12} md={6} key={menu.id}>
@@ -183,12 +178,14 @@ const MealMenu = () => {
               />
             </Box>
 
-            <Box display="flex" alignItems="center" gap={1} mb={2}>
-              <AccessTime fontSize="small" color="action" />
-              <Typography variant="body2">
-                {menu.startTime} - {menu.endTime}
-              </Typography>
-            </Box>
+            {menu.cafeteria && (
+              <Box display="flex" alignItems="center" gap={1} mb={2}>
+                <AccessTime fontSize="small" color="action" />
+                <Typography variant="body2">
+                  {menu.cafeteria.openingTime || '08:00'} - {menu.cafeteria.closingTime || '20:00'}
+                </Typography>
+              </Box>
+            )}
 
             <Box display="flex" alignItems="center" gap={1} mb={2}>
               <Place fontSize="small" color="action" />
@@ -221,47 +218,6 @@ const MealMenu = () => {
               ))}
             </List>
 
-            {/* Nutrition Info */}
-            {Object.keys(nutrition).length > 0 && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle2" fontWeight="bold" gutterBottom color="primary">
-                  Besin Değerleri:
-                </Typography>
-                <Box display="flex" flexWrap="wrap" gap={1}>
-                  {nutrition.calories && (
-                    <Chip 
-                      icon={<LocalFireDepartment />}
-                      label={`${nutrition.calories} kcal`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  )}
-                  {nutrition.protein && (
-                    <Chip 
-                      icon={<FitnessCenter />}
-                      label={`${nutrition.protein}g protein`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  )}
-                  {nutrition.carbs && (
-                    <Chip 
-                      label={`${nutrition.carbs}g karb`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  )}
-                  {nutrition.fat && (
-                    <Chip 
-                      label={`${nutrition.fat}g yağ`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  )}
-                </Box>
-              </>
-            )}
 
             {menu.price > 0 && (
               <Box mt={2}>
@@ -286,12 +242,15 @@ const MealMenu = () => {
     )
   }
 
-  if (loading && menus.length === 0) {
+  // Show loading state only if we haven't loaded anything yet
+  if (loading && menus.length === 0 && !error) {
     return (
       <Layout>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-          <CircularProgress />
-        </Box>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+            <CircularProgress />
+          </Box>
+        </Container>
       </Layout>
     )
   }
@@ -299,9 +258,19 @@ const MealMenu = () => {
   return (
     <Layout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom fontWeight="bold" color="primary">
-          Yemek Menüsü
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h4" fontWeight="bold" color="primary">
+            Yemek Menüsü
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={<BookmarkBorder />}
+            onClick={() => navigate('/meals/reservations')}
+            sx={{ minWidth: 200 }}
+          >
+            Rezervasyonlarım
+          </Button>
+        </Box>
 
         {/* Date Picker */}
         <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
@@ -355,7 +324,10 @@ const MealMenu = () => {
                   {getMealTypeLabel(selectedMenu.mealType).label}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" paragraph>
-                  {selectedDate.toLocaleDateString('tr-TR')} • {selectedMenu.startTime} - {selectedMenu.endTime}
+                  {selectedDate.toLocaleDateString('tr-TR')}
+                  {selectedMenu.cafeteria && (
+                    <> • {selectedMenu.cafeteria.openingTime || '08:00'} - {selectedMenu.cafeteria.closingTime || '20:00'}</>
+                  )}
                 </Typography>
 
                 <Divider sx={{ my: 2 }} />
@@ -370,7 +342,7 @@ const MealMenu = () => {
                 >
                   {cafeterias.map((caf) => (
                     <MenuItem key={caf.id} value={caf.id}>
-                      {caf.name} - {caf.building}
+                      {caf.name} - {caf.location}
                     </MenuItem>
                   ))}
                 </TextField>

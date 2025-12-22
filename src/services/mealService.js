@@ -11,7 +11,7 @@ export const mealService = {
   reserveMeal: (data) => api.post('/v1/meals/reservations', data),
   
   // Get my reservations
-  getMyReservations: (params) => api.get('/v1/meals/reservations/my-reservations', { params }),
+  getMyReservations: (params) => api.get('/v1/meals/reservations', { params }),
   
   // Cancel reservation
   cancelReservation: (id) => api.delete(`/v1/meals/reservations/${id}`),

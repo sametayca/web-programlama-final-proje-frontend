@@ -49,11 +49,11 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 
 const reservationSchema = yup.object({
-  classroomId: yup.number().required('Sınıf seçimi zorunludur'),
-  date: yup.date().required('Tarih seçimi zorunludur'),
-  startTime: yup.date().required('Başlangıç saati zorunludur'),
-  endTime: yup.date().required('Bitiş saati zorunludur'),
-  purpose: yup.string().required('Amaç zorunludur').min(10, 'En az 10 karakter olmalıdır')
+  classroomId: yup.string().required('Sınıf seçimi zorunludur'),
+  date: yup.date().nullable().required('Tarih seçimi zorunludur'),
+  startTime: yup.date().nullable().required('Başlangıç saati zorunludur'),
+  endTime: yup.date().nullable().required('Bitiş saati zorunludur'),
+  purpose: yup.string().required('Amaç zorunludur').min(5, 'En az 5 karakter olmalıdır')
 }).test('time-order', 'Bitiş saati başlangıçtan sonra olmalıdır', function(value) {
   if (value.startTime && value.endTime) {
     return value.endTime > value.startTime
@@ -91,12 +91,28 @@ const ClassroomReservations = () => {
     fetchReservations()
   }, [])
 
+  useEffect(() => {
+    if (createDialogOpen && classrooms.length === 0) {
+      // Refresh classrooms when dialog opens if empty
+      fetchClassrooms()
+    }
+  }, [createDialogOpen])
+
   const fetchClassrooms = async () => {
     try {
+      setLoading(true)
       const response = await reservationsService.listClassrooms()
-      setClassrooms(response.data.data || [])
+      console.log('Classrooms response:', response.data)
+      const classroomsData = response.data.data || response.data || []
+      setClassrooms(classroomsData)
+      if (classroomsData.length === 0) {
+        toast.warning('Sınıf bulunamadı')
+      }
     } catch (err) {
-      toast.error('Sınıflar yüklenemedi')
+      console.error('Error fetching classrooms:', err)
+      toast.error(err.response?.data?.error || 'Sınıflar yüklenemedi')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -118,10 +134,21 @@ const ClassroomReservations = () => {
     try {
       setCreating(true)
       
+      // Validate required fields
+      if (!data.classroomId || !data.date || !data.startTime || !data.endTime || !data.purpose) {
+        toast.error('Lütfen tüm alanları doldurun')
+        return
+      }
+      
       // Format date and times
-      const dateStr = data.date.toISOString().split('T')[0]
-      const startTimeStr = data.startTime.toTimeString().split(' ')[0].substring(0, 5)
-      const endTimeStr = data.endTime.toTimeString().split(' ')[0].substring(0, 5)
+      const dateStr = data.date ? new Date(data.date).toISOString().split('T')[0] : null
+      const startTimeStr = data.startTime ? new Date(data.startTime).toTimeString().split(' ')[0].substring(0, 5) : null
+      const endTimeStr = data.endTime ? new Date(data.endTime).toTimeString().split(' ')[0].substring(0, 5) : null
+      
+      if (!dateStr || !startTimeStr || !endTimeStr) {
+        toast.error('Lütfen geçerli tarih ve saat seçin')
+        return
+      }
       
       await reservationsService.createReservation({
         classroomId: data.classroomId,
@@ -135,6 +162,7 @@ const ClassroomReservations = () => {
       setCreateDialogOpen(false)
       reset()
       fetchReservations()
+      fetchClassrooms()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Rezervasyon oluşturulamadı')
     } finally {
@@ -158,7 +186,7 @@ const ClassroomReservations = () => {
   const handleReject = async (id) => {
     try {
       setActionLoading(id)
-      await reservationsService.rejectReservation(id, { reason: 'Admin tarafından reddedildi' })
+      await reservationsService.rejectReservation(id, { rejectedReason: 'Admin tarafından reddedildi' })
       toast.success('Rezervasyon reddedildi')
       fetchReservations()
     } catch (err) {
@@ -266,8 +294,12 @@ const ClassroomReservations = () => {
                 </Grid>
               </Grid>
 
-              {filteredClassrooms.length === 0 ? (
-                <Alert severity="info">Sınıf bulunmamaktadır</Alert>
+              {classrooms.length === 0 ? (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  Sınıf bulunamadı. Veritabanında sınıf kaydı olmayabilir. Lütfen admin ile iletişime geçin.
+                </Alert>
+              ) : filteredClassrooms.length === 0 ? (
+                <Alert severity="info">Seçilen filtreye uygun sınıf bulunamadı</Alert>
               ) : (
                 <TableContainer component={Paper} variant="outlined">
                   <Table>
@@ -287,7 +319,7 @@ const ClassroomReservations = () => {
                             <Box display="flex" alignItems="center" gap={1}>
                               <MeetingRoom color="action" />
                               <Typography variant="body1" fontWeight="bold">
-                                {room.name}
+                                {room.roomNumber}
                               </Typography>
                             </Box>
                           </TableCell>
@@ -297,14 +329,24 @@ const ClassroomReservations = () => {
                           </TableCell>
                           <TableCell>
                             <Chip 
-                              label={room.type || 'Standart'} 
+                              label="Standart" 
                               size="small" 
                               variant="outlined"
                             />
                           </TableCell>
                           <TableCell>
-                            {room.hasProjector && <Chip label="Projeksiyon" size="small" sx={{ mr: 0.5 }} />}
-                            {room.hasComputers && <Chip label="Bilgisayar" size="small" sx={{ mr: 0.5 }} />}
+                            {(() => {
+                              const features = typeof room.featuresJson === 'string' 
+                                ? JSON.parse(room.featuresJson) 
+                                : room.featuresJson || {}
+                              return (
+                                <>
+                                  {features.projector && <Chip label="Projeksiyon" size="small" sx={{ mr: 0.5 }} />}
+                                  {features.computer && <Chip label="Bilgisayar" size="small" sx={{ mr: 0.5 }} />}
+                                  {features.whiteboard && <Chip label="Tahta" size="small" sx={{ mr: 0.5 }} />}
+                                </>
+                              )
+                            })()}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -341,10 +383,10 @@ const ClassroomReservations = () => {
                         <TableRow key={reservation.id}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="bold">
-                              {reservation.classroomName}
+                              {reservation.classroom?.building} {reservation.classroom?.roomNumber}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              {reservation.building}
+                              Kapasite: {reservation.classroom?.capacity}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -355,7 +397,7 @@ const ClassroomReservations = () => {
                           </TableCell>
                           <TableCell>{reservation.purpose}</TableCell>
                           {isAdmin && activeTab === 2 && (
-                            <TableCell>{reservation.userName}</TableCell>
+                            <TableCell>{reservation.user?.firstName} {reservation.user?.lastName}</TableCell>
                           )}
                           <TableCell>{getStatusChip(reservation.status)}</TableCell>
                           {isAdmin && activeTab === 2 && (
@@ -415,7 +457,7 @@ const ClassroomReservations = () => {
                         <Select {...field} label="Sınıf">
                           {classrooms.map(room => (
                             <MenuItem key={room.id} value={room.id}>
-                              {room.name} ({room.building}) - Kapasite: {room.capacity}
+                              {room.building} {room.roomNumber} - Kapasite: {room.capacity}
                             </MenuItem>
                           ))}
                         </Select>

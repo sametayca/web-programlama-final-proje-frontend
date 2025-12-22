@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import {
@@ -41,6 +41,16 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    // Check for session expired parameter
+    if (searchParams.get('session') === 'expired') {
+      setError('Oturum süreniz doldu. Lütfen tekrar giriş yapın.')
+      // Clear the parameter from URL
+      navigate('/login', { replace: true })
+    }
+  }, [searchParams, navigate])
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(loginSchema)
@@ -50,17 +60,25 @@ const Login = () => {
     setError('')
     setLoading(true)
 
-    const result = await login(data.email, data.password)
+    try {
+      const result = await login(data.email, data.password)
 
-    if (result.success) {
-      toast.success('Giriş başarılı! Hoş geldiniz! 🎉')
-      navigate('/dashboard')
-    } else {
-      setError(result.error)
-      toast.error(result.error)
+      if (result.success) {
+        toast.success('Giriş başarılı! Hoş geldiniz! 🎉')
+        navigate('/dashboard')
+      } else {
+        const errorMsg = result.error || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.'
+        setError(errorMsg)
+        toast.error(errorMsg)
+      }
+    } catch (err) {
+      console.error('Login form error:', err)
+      const errorMsg = 'Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.'
+      setError(errorMsg)
+      toast.error(errorMsg)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (

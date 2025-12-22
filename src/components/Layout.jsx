@@ -39,6 +39,7 @@ import {
   Announcement as AnnouncementIcon,
   CalendarToday as CalendarTodayIcon,
   Restaurant as RestaurantIcon,
+  BookmarkBorder as BookmarkIcon,
   AccountBalanceWallet as WalletIcon,
   Event as EventIcon,
   Schedule as ScheduleIcon,
@@ -90,6 +91,7 @@ const Layout = ({ children }) => {
     { text: 'Mazeret Talepleri', icon: <AssignmentIcon />, path: '/excuse-requests', roles: ['faculty'] },
     // Part 3 - New Features
     { text: 'Yemek Menüsü', icon: <RestaurantIcon />, path: '/meals/menu', roles: ['student'] },
+    { text: 'Yemek Rezervasyonlarım', icon: <BookmarkIcon />, path: '/meals/reservations', roles: ['student'] },
     { text: 'Cüzdan', icon: <WalletIcon />, path: '/wallet', roles: ['student'] },
     { text: 'Etkinlikler', icon: <EventIcon />, path: '/events' },
     { text: 'Ders Programım', icon: <ScheduleIcon />, path: '/schedule', roles: ['student'] },

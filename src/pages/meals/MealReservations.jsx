@@ -49,24 +49,15 @@ const MealReservations = () => {
   }
 
   const handleCancel = async (reservation) => {
-    // Check if can cancel (2 hours before)
-    const mealTime = new Date(`${reservation.menu.date} ${reservation.menu.startTime}`)
-    const now = new Date()
-    const hoursUntilMeal = (mealTime - now) / (1000 * 60 * 60)
-
-    if (hoursUntilMeal < 2) {
-      toast.error('Yemek saatinden 2 saat öncesine kadar iptal edebilirsiniz')
-      return
-    }
-
-    if (!window.confirm('Rezervasyonu iptal etmek istediğinize emin misiniz?')) {
+    // Check if can cancel (same day check is done in backend)
+    if (!window.confirm('Rezervasyonu iptal etmek istediğinize emin misiniz? Para bakiyenize geri yüklenecektir.')) {
       return
     }
 
     try {
       setCancelling(reservation.id)
       await mealService.cancelReservation(reservation.id)
-      toast.success('Rezervasyon iptal edildi')
+      toast.success('Rezervasyon iptal edildi. Para bakiyenize geri yüklendi.')
       fetchReservations()
     } catch (err) {
       toast.error(err.response?.data?.error || 'İptal edilemedi')
@@ -85,65 +76,65 @@ const MealReservations = () => {
   }
 
   const getStatusBadge = (reservation) => {
-    if (reservation.used) {
+    if (reservation.status === 'used') {
       return <Chip icon={<CheckCircle />} label="Kullanıldı" color="success" size="small" />
     }
     if (reservation.status === 'cancelled') {
       return <Chip icon={<CancelIcon />} label="İptal Edildi" color="error" size="small" />
     }
-    if (reservation.status === 'confirmed') {
+    if (reservation.status === 'pending') {
       return <Chip icon={<Schedule />} label="Rezerve" color="primary" size="small" />
     }
-    return <Chip label={reservation.status} size="small" />
+    return <Chip label={reservation.status || 'Bilinmiyor'} size="small" />
   }
 
   const canCancel = (reservation) => {
-    if (reservation.used || reservation.status === 'cancelled') return false
-    
-    const mealTime = new Date(`${reservation.menu.date} ${reservation.menu.startTime}`)
-    const now = new Date()
-    const hoursUntilMeal = (mealTime - now) / (1000 * 60 * 60)
-    
-    return hoursUntilMeal >= 2
+    // Can cancel if status is pending and not used
+    return reservation.status === 'pending' && !reservation.usedAt
   }
 
   const getCancelTooltip = (reservation) => {
-    if (reservation.used) return 'Kullanılmış rezervasyon iptal edilemez'
+    if (reservation.status === 'used') return 'Kullanılmış rezervasyon iptal edilemez'
     if (reservation.status === 'cancelled') return 'Zaten iptal edilmiş'
-    
-    const mealTime = new Date(`${reservation.menu.date} ${reservation.menu.startTime}`)
-    const now = new Date()
-    const hoursUntilMeal = (mealTime - now) / (1000 * 60 * 60)
-    
-    if (hoursUntilMeal < 2) {
-      return 'Yemek saatinden 2 saat öncesine kadar iptal edilebilir'
+    if (reservation.status === 'pending') {
+      // Check if same day (backend will reject if same day)
+      const menuDate = new Date(reservation.menu?.menuDate || reservation.menu?.date)
+      const today = new Date()
+      menuDate.setHours(0, 0, 0, 0)
+      today.setHours(0, 0, 0, 0)
+      
+      if (menuDate.getTime() === today.getTime()) {
+        return 'Aynı gün rezervasyon iptal edilemez'
+      }
+      return 'Rezervasyonu iptal et (Para geri yüklenecek)'
     }
-    
-    return 'Rezervasyonu iptal et'
+    return 'İptal edilemez'
   }
 
   const filterReservations = () => {
     const now = new Date()
+    now.setHours(0, 0, 0, 0)
     
     return reservations.filter(res => {
-      const mealDateTime = new Date(`${res.menu.date} ${res.menu.startTime}`)
+      const menuDate = new Date(res.menu?.menuDate || res.menu?.date)
+      menuDate.setHours(0, 0, 0, 0)
       
       if (tabValue === 0) {
-        // Upcoming: gelecek veya bugün olan + henüz kullanılmamış
-        return mealDateTime >= now && !res.used && res.status !== 'cancelled'
+        // Upcoming: gelecek veya bugün olan + henüz kullanılmamış ve iptal edilmemiş
+        return menuDate >= now && res.status !== 'used' && res.status !== 'cancelled'
       } else {
         // Past: geçmiş veya kullanılmış veya iptal edilmiş
-        return mealDateTime < now || res.used || res.status === 'cancelled'
+        return menuDate < now || res.status === 'used' || res.status === 'cancelled'
       }
     }).sort((a, b) => {
-      const dateA = new Date(`${a.menu.date} ${a.menu.startTime}`)
-      const dateB = new Date(`${b.menu.date} ${b.menu.startTime}`)
+      const dateA = new Date(a.menu?.menuDate || a.menu?.date || a.reservationDate)
+      const dateB = new Date(b.menu?.menuDate || b.menu?.date || b.reservationDate)
       return tabValue === 0 ? dateA - dateB : dateB - dateA
     })
   }
 
   const renderReservationCard = (reservation) => {
-    const mealType = getMealTypeLabel(reservation.menu.mealType)
+    const mealType = getMealTypeLabel(reservation.menu?.mealType)
     const canCancelThis = canCancel(reservation)
     
     return (
@@ -156,7 +147,7 @@ const MealReservations = () => {
             </Box>
 
             <Typography variant="h6" gutterBottom>
-              {new Date(reservation.menu.date).toLocaleDateString('tr-TR', {
+              {new Date(reservation.menu?.menuDate || reservation.menu?.date || reservation.reservationDate).toLocaleDateString('tr-TR', {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -165,26 +156,38 @@ const MealReservations = () => {
             </Typography>
 
             <Typography variant="body2" color="text.secondary" paragraph>
-              📍 {reservation.cafeteria?.name || 'Kafeterya bilgisi yok'}
+              📍 {reservation.menu?.cafeteria?.name || reservation.menu?.cafeteria?.location || 'Kafeterya bilgisi yok'}
             </Typography>
 
             <Typography variant="body2" paragraph>
-              ⏰ {reservation.menu.startTime} - {reservation.menu.endTime}
+              ⏰ {reservation.menu?.cafeteria?.openingTime || '08:00'} - {reservation.menu?.cafeteria?.closingTime || '20:00'}
             </Typography>
 
-            {reservation.menu.price > 0 && (
-              <Typography variant="body2" color="warning.main" paragraph>
-                💰 Ücret: {reservation.menu.price} TL
+            {reservation.menu?.mainCourse && (
+              <Typography variant="body2" paragraph>
+                🍽️ {reservation.menu.mainCourse}
               </Typography>
             )}
 
-            {reservation.used && reservation.usedAt && (
+            {reservation.amountPaid > 0 && (
+              <Typography variant="body2" color="warning.main" paragraph>
+                💰 Ödenen: {parseFloat(reservation.amountPaid).toFixed(2)} TL
+              </Typography>
+            )}
+
+            {reservation.isScholarshipMeal && (
+              <Typography variant="body2" color="success.main" paragraph>
+                🎓 Burslu öğrenci - Ücretsiz
+              </Typography>
+            )}
+
+            {reservation.status === 'used' && reservation.usedAt && (
               <Alert severity="success" sx={{ mb: 2 }}>
                 ✓ Kullanıldı: {new Date(reservation.usedAt).toLocaleString('tr-TR')}
               </Alert>
             )}
 
-            {tabValue === 0 && !reservation.used && reservation.status === 'confirmed' && (
+            {tabValue === 0 && reservation.status === 'pending' && (
               <Box display="flex" gap={1} mt={2}>
                 <Button
                   fullWidth
@@ -295,7 +298,7 @@ const MealReservations = () => {
                   />
                   
                   <Typography variant="h5" gutterBottom fontWeight="bold">
-                    {new Date(selectedQR.menu.date).toLocaleDateString('tr-TR', {
+                    {new Date(selectedQR.menu?.menuDate || selectedQR.menu?.date || selectedQR.reservationDate).toLocaleDateString('tr-TR', {
                       weekday: 'long',
                       day: 'numeric',
                       month: 'long'
@@ -303,12 +306,18 @@ const MealReservations = () => {
                   </Typography>
                   
                   <Typography variant="body1" color="text.secondary" gutterBottom>
-                    {selectedQR.menu.startTime} - {selectedQR.menu.endTime}
+                    {selectedQR.menu?.cafeteria?.openingTime || '08:00'} - {selectedQR.menu?.cafeteria?.closingTime || '20:00'}
                   </Typography>
                   
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    📍 {selectedQR.cafeteria?.name}
+                    📍 {selectedQR.menu?.cafeteria?.name || selectedQR.menu?.cafeteria?.location}
                   </Typography>
+                  
+                  {selectedQR.menu?.mainCourse && (
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      🍽️ {selectedQR.menu.mainCourse}
+                    </Typography>
+                  )}
                   
                   <Box 
                     sx={{ 
@@ -335,9 +344,15 @@ const MealReservations = () => {
                     </Typography>
                   </Alert>
                   
-                  {selectedQR.menu.price > 0 && (
-                    <Alert severity="warning" sx={{ mt: 2 }}>
-                      Yemek alırken {selectedQR.menu.price} TL cüzdanınızdan düşülecektir
+                  {selectedQR.amountPaid > 0 && (
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      Ödenen: {parseFloat(selectedQR.amountPaid).toFixed(2)} TL (Rezervasyon sırasında düşüldü)
+                    </Alert>
+                  )}
+                  
+                  {selectedQR.isScholarshipMeal && (
+                    <Alert severity="success" sx={{ mt: 2 }}>
+                      🎓 Burslu öğrenci - Ücretsiz
                     </Alert>
                   )}
                 </>
@@ -351,3 +366,5 @@ const MealReservations = () => {
 }
 
 export default MealReservations
+
+

@@ -114,21 +114,44 @@ const Wallet = () => {
   const onSubmit = async (data) => {
     try {
       setProcessing(true)
-      const response = await walletService.topUp(data.amount)
       
-      // If backend returns payment URL, redirect to Stripe
-      if (response.data.data?.paymentUrl) {
-        toast.info('Ödeme sayfasına yönlendiriliyorsunuz...')
-        window.location.href = response.data.data.paymentUrl
-      } else if (response.data.data?.clientSecret) {
-        // Alternative: handle Stripe Elements in-app
-        toast.success('Ödeme işlemi başlatıldı')
-        setTopUpDialog(false)
-        reset()
-      } else {
-        toast.success('Bakiye yükleme talebi alındı')
-        setTopUpDialog(false)
-        reset()
+      // Try Stripe first, fallback to development mode if Stripe is not configured
+      try {
+        const response = await walletService.topUp(data.amount)
+        
+        // If backend returns payment URL, redirect to Stripe
+        if (response.data.data?.paymentUrl) {
+          toast.info('Ödeme sayfasına yönlendiriliyorsunuz...')
+          window.location.href = response.data.data.paymentUrl
+        } else if (response.data.data?.clientSecret) {
+          // Alternative: handle Stripe Elements in-app
+          toast.success('Ödeme işlemi başlatıldı')
+          setTopUpDialog(false)
+          reset()
+          fetchWalletData()
+        } else {
+          toast.success('Bakiye yükleme talebi alındı')
+          setTopUpDialog(false)
+          reset()
+          fetchWalletData()
+        }
+      } catch (stripeError) {
+        // If Stripe is not configured, use development mode
+        if (stripeError.response?.data?.error?.includes('not configured')) {
+          toast.info('Geliştirme modu: Bakiye doğrudan ekleniyor...')
+          const devResponse = await walletService.devTopUp(data.amount)
+          
+          if (devResponse.data.success) {
+            toast.success(`${data.amount} TL bakiye eklendi (Geliştirme modu)`)
+            setTopUpDialog(false)
+            reset()
+            fetchWalletData()
+            fetchTransactions()
+          }
+        } else {
+          // Re-throw if it's a different error
+          throw stripeError
+        }
       }
     } catch (err) {
       toast.error(err.response?.data?.error || 'İşlem başarısız')

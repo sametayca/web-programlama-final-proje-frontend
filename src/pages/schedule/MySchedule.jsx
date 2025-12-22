@@ -36,6 +36,7 @@ const MySchedule = () => {
   const [year, setYear] = useState(new Date().getFullYear())
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [exporting, setExporting] = useState(false)
+  const [calendarView, setCalendarView] = useState(null)
 
   useEffect(() => {
     fetchSchedule()
@@ -46,19 +47,34 @@ const MySchedule = () => {
       setLoading(true)
       const response = await schedulingService.getMySchedule({ semester, year })
       const scheduleData = response.data.data || []
+      console.log('📅 Schedule data from backend:', scheduleData)
       setSchedule(scheduleData)
       
-      // Convert to FullCalendar events
+      // Convert to FullCalendar events (will be updated when calendar view changes)
       const calendarEvents = convertToCalendarEvents(scheduleData)
+      console.log('📆 Calendar events:', calendarEvents)
       setEvents(calendarEvents)
     } catch (err) {
-      setError(err.response?.data?.error || 'Program yüklenemedi')
+      console.error('Schedule fetch error:', err)
+      const errorMsg = err.response?.data?.error || 'Program yüklenemedi'
+      setError(errorMsg)
+      // If no schedule found, don't show error, just empty state
+      if (err.response?.status === 404 || errorMsg.includes('not found')) {
+        setError(null)
+        setSchedule([])
+        setEvents([])
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const convertToCalendarEvents = (scheduleData) => {
+  const convertToCalendarEvents = (scheduleData, viewStart = null) => {
+    if (!scheduleData || scheduleData.length === 0) {
+      console.log('⚠️ No schedule data to convert')
+      return []
+    }
+
     const dayMap = {
       'Monday': 1,
       'Tuesday': 2,
@@ -66,18 +82,70 @@ const MySchedule = () => {
       'Thursday': 4,
       'Friday': 5,
       'Saturday': 6,
-      'Sunday': 0
+      'Sunday': 0,
+      'Pazartesi': 1,
+      'Salı': 2,
+      'Çarşamba': 3,
+      'Perşembe': 4,
+      'Cuma': 5,
+      'Cumartesi': 6,
+      'Pazar': 0
     }
 
-    return scheduleData.map(item => {
+    // Get week start from calendar view or current date
+    const getWeekStart = (date = new Date()) => {
+      const d = date instanceof Date ? new Date(date) : new Date(date)
+      d.setHours(0, 0, 0, 0)
+      const day = d.getDay()
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
+      const monday = new Date(d)
+      monday.setDate(diff)
+      return monday
+    }
+
+    const weekStart = viewStart ? getWeekStart(viewStart) : getWeekStart()
+    console.log('📅 Week start (Monday):', weekStart.toISOString())
+    
+    const events = scheduleData.map((item, index) => {
+      if (!item.day) {
+        console.warn('⚠️ Item missing day:', item)
+        return null
+      }
+
       const dayOfWeek = dayMap[item.day]
       
-      return {
-        id: item.id || `${item.courseCode}-${item.day}`,
-        title: `${item.courseCode} - ${item.classroomName}`,
-        daysOfWeek: [dayOfWeek],
-        startTime: item.startTime,
-        endTime: item.endTime,
+      if (dayOfWeek === undefined) {
+        console.warn(`⚠️ Unknown day: "${item.day}"`, item)
+        return null
+      }
+
+      // Calculate the date for this day in the current week
+      const eventDate = new Date(weekStart)
+      eventDate.setDate(weekStart.getDate() + (dayOfWeek - 1))
+      
+      // Parse time
+      const startTimeStr = item.startTime || '09:00'
+      const endTimeStr = item.endTime || '11:00'
+      
+      const [startHours, startMinutes] = startTimeStr.split(':').map(Number)
+      const [endHours, endMinutes] = endTimeStr.split(':').map(Number)
+      
+      if (isNaN(startHours) || isNaN(startMinutes) || isNaN(endHours) || isNaN(endMinutes)) {
+        console.warn('⚠️ Invalid time format:', item)
+        return null
+      }
+      
+      const start = new Date(eventDate)
+      start.setHours(startHours, startMinutes, 0, 0)
+      
+      const end = new Date(eventDate)
+      end.setHours(endHours, endMinutes, 0, 0)
+      
+      const event = {
+        id: item.id || `${item.courseCode}-${item.day}-${index}`,
+        title: `${item.courseCode}${item.courseName ? ' - ' + item.courseName : ''}`,
+        start: start.toISOString(),
+        end: end.toISOString(),
         backgroundColor: '#1976d2',
         borderColor: '#1565c0',
         extendedProps: {
@@ -89,7 +157,13 @@ const MySchedule = () => {
           credits: item.credits
         }
       }
-    })
+      
+      console.log(`✅ Event created: ${event.title} on ${item.day} ${start.toISOString()}`)
+      return event
+    }).filter(Boolean) // Remove null entries
+    
+    console.log(`📊 Total events created: ${events.length}`)
+    return events
   }
 
   const handleEventClick = (info) => {
@@ -234,6 +308,14 @@ const MySchedule = () => {
                 }}
                 dayHeaderFormat={{
                   weekday: 'long'
+                }}
+                datesSet={(dateInfo) => {
+                  // Update events when calendar view changes
+                  if (schedule.length > 0) {
+                    const weekStart = dateInfo.start
+                    const updatedEvents = convertToCalendarEvents(schedule, weekStart)
+                    setEvents(updatedEvents)
+                  }
                 }}
               />
             </Paper>
