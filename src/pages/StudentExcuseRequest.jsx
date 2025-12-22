@@ -73,7 +73,10 @@ const StudentExcuseRequest = () => {
         
         // Auto-select first session if only one available
         if (availableSessions.length === 1) {
-          setSelectedSessionId(availableSessions[0].id || availableSessions[0].sessionId)
+          const sessionId = availableSessions[0].id || availableSessions[0].sessionId
+          if (sessionId) {
+            setSelectedSessionId(String(sessionId))
+          }
         } else if (availableSessions.length > 1 && !selectedSessionId) {
           // If multiple sessions, don't auto-select - user must choose
           setSelectedSessionId('')
@@ -125,8 +128,15 @@ const StudentExcuseRequest = () => {
 
     setSubmitting(true)
     try {
+      // Ensure sessionId is a valid string
+      if (!selectedSessionId || typeof selectedSessionId !== 'string') {
+        setError('Geçersiz oturum seçimi')
+        setSubmitting(false)
+        return
+      }
+
       const submitData = {
-        sessionId: selectedSessionId,
+        sessionId: String(selectedSessionId).trim(),
         reason: formData.reason.trim()
       }
 
@@ -137,8 +147,9 @@ const StudentExcuseRequest = () => {
         toast.info('Dosya yükleme özelliği yakında eklenecek. Mazeret talebi belge olmadan gönderiliyor.')
       }
 
-      await attendanceService.createExcuseRequest(submitData)
-      toast.success('Mazeret talebiniz başarıyla gönderildi')
+      const response = await attendanceService.createExcuseRequest(submitData)
+      const successMessage = response.data?.message || 'Mazeret talebiniz başarıyla gönderildi'
+      toast.success(successMessage)
       navigate('/my-attendance')
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Mazeret talebi gönderilemedi'
@@ -215,8 +226,10 @@ const StudentExcuseRequest = () => {
                         onChange={(e) => setSelectedSessionId(e.target.value)}
                         label="Yoklama Oturumu Seçin"
                       >
-                        {sessions.map((session) => (
-                          <MenuItem key={session.sessionId || session.id} value={session.sessionId || session.id}>
+                        {sessions.map((session) => {
+                          const sessionId = String(session.id || session.sessionId || '')
+                          return (
+                          <MenuItem key={sessionId} value={sessionId}>
                             <Box>
                               <Typography variant="body1" sx={{ fontWeight: 600 }}>
                                 {session.date ? new Date(session.date).toLocaleDateString('tr-TR', {
@@ -234,7 +247,8 @@ const StudentExcuseRequest = () => {
                               </Typography>
                             </Box>
                           </MenuItem>
-                        ))}
+                          )
+                        })}
                       </Select>
                     </FormControl>
                   </Grid>
