@@ -115,64 +115,18 @@ const Wallet = () => {
     try {
       setProcessing(true)
       
-      // Check if we're in production environment
-      const isProduction = window.location.hostname.includes('railway.app') || 
-                          window.location.protocol === 'https:'
+      // Direct balance top-up (no Stripe)
+      const response = await walletService.devTopUp(data.amount)
       
-      // Try Stripe payment
-      try {
-        const response = await walletService.topUp(data.amount)
-        
-        // If backend returns payment URL, redirect to Stripe
-        if (response.data.data?.paymentUrl) {
-          toast.info('Ödeme sayfasına yönlendiriliyorsunuz...')
-          window.location.href = response.data.data.paymentUrl
-        } else if (response.data.data?.clientSecret) {
-          // Alternative: handle Stripe Elements in-app
-          toast.success('Ödeme işlemi başlatıldı')
-          setTopUpDialog(false)
-          reset()
-          fetchWalletData()
-        } else {
-          toast.success('Bakiye yükleme talebi alındı')
-          setTopUpDialog(false)
-          reset()
-          fetchWalletData()
-        }
-      } catch (stripeError) {
-        // In production, don't try dev endpoint
-        if (isProduction) {
-          const errorMessage = stripeError.response?.data?.error || 
-                             'Ödeme sistemi yapılandırılmamış. Lütfen yönetici ile iletişime geçin.'
-          toast.error(errorMessage)
-          throw stripeError
-        }
-        
-        // In development, fallback to dev endpoint if Stripe is not configured
-        if (stripeError.response?.data?.error?.includes('not configured')) {
-          toast.info('Geliştirme modu: Bakiye doğrudan ekleniyor...')
-          try {
-            const devResponse = await walletService.devTopUp(data.amount)
-            
-            if (devResponse.data.success) {
-              toast.success(`${data.amount} TL bakiye eklendi (Geliştirme modu)`)
-              setTopUpDialog(false)
-              reset()
-              fetchWalletData()
-              fetchTransactions()
-            }
-          } catch (devError) {
-            // Dev endpoint also failed
-            toast.error(devError.response?.data?.error || 'Geliştirme modu da kullanılamıyor')
-            throw devError
-          }
-        } else {
-          // Re-throw if it's a different error
-          throw stripeError
-        }
+      if (response.data.success) {
+        toast.success(`${data.amount} TL bakiye başarıyla eklendi!`)
+        setTopUpDialog(false)
+        reset()
+        fetchWalletData()
+        fetchTransactions()
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.error || 'İşlem başarısız'
+      const errorMessage = err.response?.data?.error || 'Bakiye yükleme başarısız'
       toast.error(errorMessage)
       console.error('Top-up error:', err)
     } finally {
@@ -439,7 +393,7 @@ const Wallet = () => {
             </DialogTitle>
             <DialogContent>
               <Alert severity="info" sx={{ mb: 3 }}>
-                Minimum yükleme tutarı 50 TL'dir. Ödeme güvenli bir şekilde Stripe üzerinden yapılacaktır.
+                Minimum yükleme tutarı 50 TL'dir. Seçtiğiniz tutar bakiyenize eklenecektir.
               </Alert>
               
               <TextField
@@ -478,11 +432,6 @@ const Wallet = () => {
                 </Grid>
               </Box>
 
-              <Alert severity="warning" sx={{ mt: 3 }}>
-                <Typography variant="body2">
-                  Ödeme işlemi için Stripe ödeme sayfasına yönlendirileceksiniz.
-                </Typography>
-              </Alert>
             </DialogContent>
             <DialogActions>
               <Button 
@@ -497,7 +446,7 @@ const Wallet = () => {
                 disabled={processing}
                 startIcon={processing ? <CircularProgress size={20} /> : <CreditCard />}
               >
-                {processing ? 'İşleniyor...' : 'Ödemeye Geç'}
+                {processing ? 'Yükleniyor...' : 'Bakiye Yükle'}
               </Button>
             </DialogActions>
           </form>
