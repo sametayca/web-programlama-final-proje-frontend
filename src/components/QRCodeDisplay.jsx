@@ -46,3 +46,5 @@ const QRCodeDisplay = ({ value, size = 256, title = 'QR Kod' }) => {
 
 export default QRCodeDisplay
 
+
+
