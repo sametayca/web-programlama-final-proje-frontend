@@ -393,7 +393,7 @@ const Wallet = () => {
             </DialogTitle>
             <DialogContent>
               <Alert severity="info" sx={{ mb: 3 }}>
-                Minimum yükleme tutarı 50 TL'dir. Seçtiğiniz tutar bakiyenize eklenecektir.
+                Seçtiğiniz tutar bakiyenize eklenecektir.
               </Alert>
               
               <TextField
@@ -406,8 +406,8 @@ const Wallet = () => {
                 InputProps={{
                   endAdornment: <InputAdornment position="end">TRY</InputAdornment>,
                   inputProps: { 
-                    min: 50, 
-                    step: 10 
+                    min: 0.01, 
+                    step: 0.01 
                   }
                 }}
                 sx={{ mb: 2 }}
