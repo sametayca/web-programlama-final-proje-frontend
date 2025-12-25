@@ -154,7 +154,13 @@ export const sectionService = {
   getSection: (id) => api.get(`/v1/sections/${id}`),
   getSectionById: (id) => api.get(`/v1/sections/${id}`),
   createSection: (data) => api.post('/v1/sections', data),
-  updateSection: (id, data) => api.put(`/v1/sections/${id}`, data)
+  updateSection: (id, data) => api.put(`/v1/sections/${id}`, data) // Admin assignment
+}
+
+// User service (Admin)
+export const userService = {
+  getUsers: (params) => api.get('/users', { params }),
+  updateUser: (id, data) => api.put(`/users/${id}`, data)
 }
 
 // Enrollment service (Part 2)
@@ -206,6 +212,16 @@ export const analyticsService = {
   getAcademicPerformance: () => api.get('/v1/analytics/academic-performance'),
   getAttendanceAnalytics: () => api.get('/v1/analytics/attendance'),
   getMealAnalytics: () => api.get('/v1/analytics/meal-usage')
+}
+
+// Event Service (Part 3)
+export const eventService = {
+  getEvents: (params) => api.get('/v1/events', { params }), // Assuming this exists
+  getEvent: (id) => api.get(`/v1/events/${id}`),
+  createEvent: (data) => api.post('/v1/events', data),
+  updateEvent: (id, data) => api.put(`/v1/events/${id}`, data),
+  deleteEvent: (id) => api.delete(`/v1/events/${id}`),
+  checkIn: (eventId, userId) => api.post(`/v1/events/${eventId}/checkin`, { userId })
 }
 
 export default api
