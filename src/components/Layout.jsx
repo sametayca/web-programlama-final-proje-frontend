@@ -77,6 +77,7 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     { text: 'Ana Sayfa', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Yönetici Paneli', icon: <AssessmentIcon />, path: '/admin-dashboard', roles: ['admin'] },
     { text: 'Profil', icon: <PersonIcon />, path: '/profile' },
     { text: 'Duyurular', icon: <AnnouncementIcon />, path: '/announcements' },
     { text: 'Akademik Takvim', icon: <CalendarTodayIcon />, path: '/academic-calendar' },
@@ -201,15 +202,15 @@ const Layout = ({ children }) => {
                 }}
                 sx={{
                   borderRadius: 3,
-                  bgcolor: isActive 
-                    ? 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)' 
+                  bgcolor: isActive
+                    ? 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)'
                     : 'transparent',
                   py: 1.5,
                   px: 2,
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   transform: isActive ? 'translateX(8px)' : 'translateX(0)',
-                  boxShadow: isActive 
-                    ? '0 4px 20px rgba(14, 165, 233, 0.4)' 
+                  boxShadow: isActive
+                    ? '0 4px 20px rgba(14, 165, 233, 0.4)'
                     : 'none',
                   '& .MuiListItemIcon-root': {
                     color: `${isActive ? 'white' : '#000000'} !important`
@@ -223,8 +224,8 @@ const Layout = ({ children }) => {
                     fontWeight: '700 !important'
                   },
                   '&:hover': {
-                    bgcolor: isActive 
-                      ? 'linear-gradient(135deg, #0284c7 0%, #0d9488 100%)' 
+                    bgcolor: isActive
+                      ? 'linear-gradient(135deg, #0284c7 0%, #0d9488 100%)'
                       : 'rgba(14, 165, 233, 0.12)',
                     transform: 'translateX(8px)',
                     boxShadow: '0 4px 20px rgba(14, 165, 233, 0.25)',
@@ -303,12 +304,12 @@ const Layout = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography 
-            variant="h6" 
-            noWrap 
-            component="div" 
-            sx={{ 
-              flexGrow: 1, 
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{
+              flexGrow: 1,
               fontWeight: 700,
               background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
               WebkitBackgroundClip: 'text',
@@ -320,7 +321,7 @@ const Layout = ({ children }) => {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Badge badgeContent={3} color="error">
-              <IconButton sx={{ 
+              <IconButton sx={{
                 bgcolor: 'rgba(102, 126, 234, 0.1)',
                 '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.2)' }
               }}>
@@ -344,9 +345,9 @@ const Layout = ({ children }) => {
                 sx={{ fontWeight: 600 }}
               />
             )}
-            <IconButton 
-              onClick={handleMenuOpen} 
-              sx={{ 
+            <IconButton
+              onClick={handleMenuOpen}
+              sx={{
                 p: 0,
                 transition: 'all 0.3s ease',
                 '&:hover': {
@@ -356,8 +357,8 @@ const Layout = ({ children }) => {
             >
               <Avatar
                 src={user?.profilePicture ? `http://localhost:3000/uploads/profile-pictures/${user.profilePicture}` : ''}
-                sx={{ 
-                  width: 42, 
+                sx={{
+                  width: 42,
                   height: 42,
                   border: '2px solid',
                   borderColor: 'primary.main',
@@ -383,7 +384,7 @@ const Layout = ({ children }) => {
                 }
               }}
             >
-              <MenuItem 
+              <MenuItem
                 onClick={() => { navigate('/profile'); handleMenuClose(); }}
                 sx={{ py: 1.5, px: 2 }}
               >
@@ -393,7 +394,7 @@ const Layout = ({ children }) => {
                 Profil
               </MenuItem>
               <Divider />
-              <MenuItem 
+              <MenuItem
                 onClick={handleLogout}
                 sx={{ py: 1.5, px: 2, color: 'error.main' }}
               >
@@ -419,8 +420,8 @@ const Layout = ({ children }) => {
           }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
               width: drawerWidth,
               borderRight: 'none',
               boxShadow: '4px 0 24px rgba(0,0,0,0.1)'
@@ -433,9 +434,9 @@ const Layout = ({ children }) => {
           variant="permanent"
           sx={{
             display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
-              width: drawerWidth, 
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
               borderRight: 'none',
               boxShadow: '4px 0 24px rgba(0,0,0,0.08)',
               background: '#ffffff'

@@ -11,6 +11,7 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const Profile = lazy(() => import('./pages/Profile'))
 const CourseCatalog = lazy(() => import('./pages/CourseCatalog'))
 const CourseDetail = lazy(() => import('./pages/CourseDetail'))
@@ -92,256 +93,266 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/courses"
-        element={
-          <ProtectedRoute>
-            <CourseCatalog />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/courses/:id"
-        element={
-          <ProtectedRoute>
-            <CourseDetail />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/my-courses"
-        element={
-          <ProtectedRoute>
-            <MyCourses />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/grades"
-        element={
-          <ProtectedRoute>
-            <Grades />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/my-attendance"
-        element={
-          <ProtectedRoute>
-            <MyAttendance />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/attendance/start"
-        element={
-          <ProtectedRoute>
-            <StartAttendance />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/attendance/give/:sessionId"
-        element={
-          <ProtectedRoute>
-            <GiveAttendance />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/gradebook/:sectionId"
-        element={
-          <ProtectedRoute>
-            <Gradebook />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/attendance/report/:sectionId"
-        element={
-          <ProtectedRoute>
-            <AttendanceReport />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/excuse-requests"
-        element={
-          <ProtectedRoute>
-            <ExcuseRequests />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/attendance/excuse/:sectionId"
-        element={
-          <ProtectedRoute>
-            <StudentExcuseRequest />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/faculty-courses"
-        element={
-          <ProtectedRoute>
-            <FacultyCourses />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/announcements"
-        element={
-          <ProtectedRoute>
-            <Announcements />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/announcements/new"
-        element={
-          <ProtectedRoute>
-            <AnnouncementForm />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/announcements/edit/:id"
-        element={
-          <ProtectedRoute>
-            <AnnouncementForm />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/announcements/:id"
-        element={
-          <ProtectedRoute>
-            <AnnouncementDetail />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/academic-calendar"
-        element={
-          <ProtectedRoute>
-            <AcademicCalendar />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Part 3 - Meal System Routes */}
-      <Route
-        path="/meals/menu"
-        element={
-          <ProtectedRoute>
-            <MealMenu />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/meals/reservations"
-        element={
-          <ProtectedRoute requiredRole="student">
-            <MealReservations />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/meals/scan"
-        element={
-          <ProtectedRoute requiredRole="staff">
-            <MealScan />
-          </ProtectedRoute>
-        }
-      />
+        {/* Admin Dashboard */}
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses"
+          element={
+            <ProtectedRoute>
+              <CourseCatalog />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses/:id"
+          element={
+            <ProtectedRoute>
+              <CourseDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-courses"
+          element={
+            <ProtectedRoute>
+              <MyCourses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/grades"
+          element={
+            <ProtectedRoute>
+              <Grades />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-attendance"
+          element={
+            <ProtectedRoute>
+              <MyAttendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/attendance/start"
+          element={
+            <ProtectedRoute>
+              <StartAttendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/attendance/give/:sessionId"
+          element={
+            <ProtectedRoute>
+              <GiveAttendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gradebook/:sectionId"
+          element={
+            <ProtectedRoute>
+              <Gradebook />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/attendance/report/:sectionId"
+          element={
+            <ProtectedRoute>
+              <AttendanceReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/excuse-requests"
+          element={
+            <ProtectedRoute>
+              <ExcuseRequests />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/attendance/excuse/:sectionId"
+          element={
+            <ProtectedRoute>
+              <StudentExcuseRequest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/faculty-courses"
+          element={
+            <ProtectedRoute>
+              <FacultyCourses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/announcements"
+          element={
+            <ProtectedRoute>
+              <Announcements />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/announcements/new"
+          element={
+            <ProtectedRoute>
+              <AnnouncementForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/announcements/edit/:id"
+          element={
+            <ProtectedRoute>
+              <AnnouncementForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/announcements/:id"
+          element={
+            <ProtectedRoute>
+              <AnnouncementDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/academic-calendar"
+          element={
+            <ProtectedRoute>
+              <AcademicCalendar />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Part 3 - Wallet Route */}
-      <Route
-        path="/wallet"
-        element={
-          <ProtectedRoute requiredRole="student">
-            <Wallet />
-          </ProtectedRoute>
-        }
-      />
+        {/* Part 3 - Meal System Routes */}
+        <Route
+          path="/meals/menu"
+          element={
+            <ProtectedRoute>
+              <MealMenu />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/meals/reservations"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <MealReservations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/meals/scan"
+          element={
+            <ProtectedRoute requiredRole="staff">
+              <MealScan />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Part 3 - Event Routes */}
-      <Route
-        path="/events"
-        element={
-          <ProtectedRoute>
-            <Events />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/events/:id"
-        element={
-          <ProtectedRoute>
-            <EventDetail />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/my-events"
-        element={
-          <ProtectedRoute>
-            <MyEvents />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/events/checkin"
-        element={
-          <ProtectedRoute requiredRole={['staff', 'faculty']}>
-            <EventCheckIn />
-          </ProtectedRoute>
-        }
-      />
+        {/* Part 3 - Wallet Route */}
+        <Route
+          path="/wallet"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <Wallet />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Part 3 - Schedule Routes */}
-      <Route
-        path="/schedule"
-        element={
-          <ProtectedRoute requiredRole="student">
-            <MySchedule />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/scheduling/generate"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <GenerateSchedule />
-          </ProtectedRoute>
-        }
-      />
+        {/* Part 3 - Event Routes */}
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <Events />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/:id"
+          element={
+            <ProtectedRoute>
+              <EventDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-events"
+          element={
+            <ProtectedRoute>
+              <MyEvents />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/events/checkin"
+          element={
+            <ProtectedRoute requiredRole={['staff', 'faculty']}>
+              <EventCheckIn />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Part 3 - Classroom Reservations Route */}
-      <Route
-        path="/reservations"
-        element={
-          <ProtectedRoute>
-            <ClassroomReservations />
-          </ProtectedRoute>
-        }
-      />
+        {/* Part 3 - Schedule Routes */}
+        <Route
+          path="/schedule"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <MySchedule />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/scheduling/generate"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <GenerateSchedule />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Part 3 - Classroom Reservations Route */}
+        <Route
+          path="/reservations"
+          element={
+            <ProtectedRoute>
+              <ClassroomReservations />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
       </Routes>

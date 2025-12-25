@@ -6,7 +6,7 @@ const getApiUrl = () => {
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol
     const hostname = window.location.hostname
-    
+
     // Production'da (HTTPS) ise, backend URL'ini tahmin et
     if (protocol === 'https:' && hostname.includes('railway.app')) {
       // Frontend URL'inden backend URL'ini oluştur
@@ -16,7 +16,7 @@ const getApiUrl = () => {
       console.log('🔗 API URL (Runtime Auto-detected from Railway):', url)
       return url
     }
-    
+
     // Development için - Browser'dan çalışıyorsa her zaman localhost kullan
     if (protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1')) {
       const url = 'http://localhost:3000/api'
@@ -24,7 +24,7 @@ const getApiUrl = () => {
       return url
     }
   }
-  
+
   // Environment variable'ı kontrol et (sadece Docker internal network için)
   const envUrl = import.meta.env.VITE_API_URL
   if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
@@ -32,7 +32,7 @@ const getApiUrl = () => {
     console.log('🔗 API URL (Environment Variable - Docker internal):', envUrl)
     return envUrl
   }
-  
+
   // Son çare: Development default
   const url = 'http://localhost:3000/api'
   console.log('🔗 API URL (Fallback - Development):', url)
@@ -59,7 +59,7 @@ api.interceptors.request.use(
       config.baseURL = currentApiUrl
       API_URL = currentApiUrl // Global değişkeni de güncelle
     }
-    
+
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -198,6 +198,14 @@ export const announcementService = {
   createAnnouncement: (data) => api.post('/v1/announcements', data),
   updateAnnouncement: (id, data) => api.put(`/v1/announcements/${id}`, data),
   deleteAnnouncement: (id) => api.delete(`/v1/announcements/${id}`)
+}
+
+// Analytics service (Part 4)
+export const analyticsService = {
+  getDashboardStats: () => api.get('/v1/analytics/dashboard'),
+  getAcademicPerformance: () => api.get('/v1/analytics/academic-performance'),
+  getAttendanceAnalytics: () => api.get('/v1/analytics/attendance'),
+  getMealAnalytics: () => api.get('/v1/analytics/meal-usage')
 }
 
 export default api
