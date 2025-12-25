@@ -181,21 +181,38 @@ const AdminDashboard = () => {
         try {
             const response = await userService.getUsers({ limit: 50 })
             if (response.data.success) setUsers(response.data.data.users || [])
-        } catch (err) { console.error('Users Error:', err) }
+        } catch (err) {
+            console.error('Users Error:', err);
+            const msg = err.response?.data?.error || err.message;
+            const details = err.response?.data?.details || '';
+            toast.error(`Kullanıcılar yüklenemedi: ${msg} ${details}`);
+            // Fallback for immediate user feedback
+            if (msg.includes('500') || details) {
+                window.alert(`HATA DETAYI (Lütfen bunu bildiriniz): \n${msg}\n${details}\n${JSON.stringify(err.response?.data)}`);
+            }
+        }
     }
 
     const fetchFaculty = async () => {
         try {
             const response = await userService.getUsers({ role: 'faculty', limit: 100 })
             if (response.data.success) setFacultyUsers(response.data.data.users || [])
-        } catch (err) { console.error('Faculty fetch Error:', err) }
+        } catch (err) {
+            console.error('Faculty fetch Error:', err);
+            // Silent fail or toast? Let's toast for debug
+            const msg = err.response?.data?.error || err.message;
+            toast.error(`Öğretim üyeleri yüklenemedi: ${msg}`);
+        }
     }
 
     const fetchSections = async () => {
         try {
             const response = await sectionService.getSections({ limit: 100 })
             if (response.data.success) setSections(response.data.data || [])
-        } catch (err) { console.error('Sections Error:', err) }
+        } catch (err) {
+            console.error('Sections Error:', err)
+            toast.error('Ders şubeleri yüklenemedi');
+        }
     }
 
     const fetchContent = async () => {
