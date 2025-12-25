@@ -48,15 +48,17 @@ const AcademicCalendar = () => {
       const response = await import('../services/api').then(module => module.eventService.getEvents({ limit: 200 }))
       if (response.data.success) {
         // Map backend eventType to frontend categories if needed
-        const fetchedEvents = response.data.data.events.map(evt => ({
-          id: evt.id,
-          title: evt.title,
-          date: evt.startDate, // Using start date
-          type: evt.eventType,
-          priority: evt.priority || 'normal',
-          description: evt.description,
-          category: mapTypeToCategory(evt.eventType)
-        }))
+        const fetchedEvents = response.data.data.events
+          .filter(evt => ['academic', 'exam', 'holiday', 'registration', 'ceremony'].includes(evt.eventType)) // Only show academic events
+          .map(evt => ({
+            id: evt.id,
+            title: evt.title,
+            date: evt.startDate, // Using start date
+            type: evt.eventType,
+            priority: evt.priority || 'normal',
+            description: evt.description,
+            category: mapTypeToCategory(evt.eventType)
+          }))
         setAcademicEvents(fetchedEvents)
       }
     } catch (error) {

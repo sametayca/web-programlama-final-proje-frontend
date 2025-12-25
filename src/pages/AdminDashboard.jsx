@@ -311,7 +311,8 @@ const AdminDashboard = () => {
                         <Tab label="Genel Bakış" icon={<TrendingUpIcon />} iconPosition="start" />
                         <Tab label="Kullanıcılar" icon={<SupervisorAccountIcon />} iconPosition="start" />
                         <Tab label="Ders Yönetimi" icon={<SchoolIcon />} iconPosition="start" />
-                        <Tab label="İçerik & Takvim" icon={<CalendarMonthIcon />} iconPosition="start" />
+                        <Tab label="Etkinlikler" icon={<EventIcon />} iconPosition="start" />
+                        <Tab label="Akademik Takvim" icon={<CalendarMonthIcon />} iconPosition="start" />
                     </Tabs>
                 </Paper>
 
@@ -418,14 +419,16 @@ const AdminDashboard = () => {
                     </TableContainer>
                 </TabPanel>
 
-                {/* --- Tab 4: Content & Calendar --- */}
+                {/* --- Tab 4: Events (Sosyal/Kültürel) --- */}
                 <TabPanel value={activeTab} index={3}>
                     <Grid container spacing={4}>
-                        {/* Events / Calendar */}
                         <Grid item xs={12}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h6">Etkinlikler & Akademik Takvim</Typography>
-                                <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpenEventDialog(true)}>Yeni Etkinlik / Takvim Öğesi Ekle</Button>
+                                <Typography variant="h6">Etkinlik Yönetimi (Sosyal, Seminer vb.)</Typography>
+                                <Button startIcon={<AddIcon />} variant="contained" onClick={() => {
+                                    setNewEvent({ ...newEvent, eventType: 'social', title: '' }); // Reset to default social type
+                                    setOpenEventDialog(true);
+                                }}>Yeni Etkinlik Ekle</Button>
                             </Box>
                             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
                                 <TableContainer sx={{ maxHeight: 400 }}>
@@ -440,27 +443,31 @@ const AdminDashboard = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {events && events.length > 0 ? events.map(evt => (
-                                                <TableRow key={evt.id}>
-                                                    <TableCell>{evt.title}</TableCell>
-                                                    <TableCell>
-                                                        <Chip label={evt.eventType} size="small" variant="outlined" />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        {new Date(evt.startDate).toLocaleDateString('tr-TR')}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Chip
-                                                            label={evt.priority || 'Normal'}
-                                                            size="small"
-                                                            color={evt.priority === 'urgent' ? 'error' : evt.priority === 'high' ? 'warning' : 'default'}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell align="right">
-                                                        <IconButton size="small" onClick={() => handleDeleteEvent(evt.id)} color="error"><DeleteIcon fontSize="small" /></IconButton>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )) : (
+                                            {events && events
+                                                .filter(evt => !['academic', 'exam', 'holiday', 'registration', 'ceremony'].includes(evt.eventType)) // Hide academic
+                                                .length > 0 ? events
+                                                    .filter(evt => !['academic', 'exam', 'holiday', 'registration', 'ceremony'].includes(evt.eventType))
+                                                    .map(evt => (
+                                                        <TableRow key={evt.id}>
+                                                            <TableCell>{evt.title}</TableCell>
+                                                            <TableCell>
+                                                                <Chip label={evt.eventType} size="small" variant="outlined" />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {new Date(evt.startDate).toLocaleDateString('tr-TR')}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Chip
+                                                                    label={evt.priority || 'Normal'}
+                                                                    size="small"
+                                                                    color={evt.priority === 'urgent' ? 'error' : evt.priority === 'high' ? 'warning' : 'default'}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell align="right">
+                                                                <IconButton size="small" onClick={() => handleDeleteEvent(evt.id)} color="error"><DeleteIcon fontSize="small" /></IconButton>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )) : (
                                                 <TableRow><TableCell colSpan={5} align="center">Etkinlik bulunamadı</TableCell></TableRow>
                                             )}
                                         </TableBody>
@@ -469,11 +476,13 @@ const AdminDashboard = () => {
                             </Paper>
                         </Grid>
 
-                        {/* Announcements */}
+                        {/* Announcements Section moved here as well or keep separate? Let's keep duplicate for now or specific place. 
+                            Actually, splitting announcements out of this might be better, but user asked for Events vs Calendar. 
+                            I'll leave Announcements in Events tab for now as "Content". 
+                        */}
                         <Grid item xs={12}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                 <Typography variant="h6">Duyurular</Typography>
-                                {/* Announcement Creation could be added here similarly */}
                             </Box>
                             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
                                 <TableContainer sx={{ maxHeight: 300 }}>
@@ -496,6 +505,61 @@ const AdminDashboard = () => {
                             </Paper>
                         </Grid>
                     </Grid>
+                </TabPanel>
+
+                {/* --- Tab 5: Academic Calendar (Only Academic) --- */}
+                <TabPanel value={activeTab} index={4}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">Akademik Takvim Yönetimi 📅</Typography>
+                        <Button startIcon={<AddIcon />} variant="contained" color="warning" onClick={() => {
+                            setNewEvent({ ...newEvent, eventType: 'academic', title: '' }); // Reset to default academic type
+                            setOpenEventDialog(true);
+                        }}>Yeni Akademik Tarih Ekle</Button>
+                    </Box>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        Buradan eklenen etkinlikler sadece Akademik Takvim sayfasında görünür.
+                    </Alert>
+
+                    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                        <TableContainer sx={{ maxHeight: 600 }}>
+                            <Table stickyHeader>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Olay Adı</TableCell>
+                                        <TableCell>Kategori</TableCell>
+                                        <TableCell>Başlangıç</TableCell>
+                                        <TableCell>Bitiş</TableCell>
+                                        <TableCell align="right">İşlemler</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {events && events
+                                        .filter(evt => ['academic', 'exam', 'holiday', 'registration', 'ceremony'].includes(evt.eventType))
+                                        .length > 0 ? events
+                                            .filter(evt => ['academic', 'exam', 'holiday', 'registration', 'ceremony'].includes(evt.eventType))
+                                            .map(evt => (
+                                                <TableRow key={evt.id}>
+                                                    <TableCell sx={{ fontWeight: 'bold' }}>{evt.title}</TableCell>
+                                                    <TableCell>
+                                                        <Chip
+                                                            label={evt.eventType === 'holiday' ? 'Tatil' : evt.eventType === 'exam' ? 'Sınav' : 'Genel'}
+                                                            color={evt.eventType === 'holiday' ? 'error' : evt.eventType === 'exam' ? 'warning' : 'primary'}
+                                                            size="small"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>{new Date(evt.startDate).toLocaleDateString('tr-TR')}</TableCell>
+                                                    <TableCell>{new Date(evt.endDate).toLocaleDateString('tr-TR')}</TableCell>
+                                                    <TableCell align="right">
+                                                        <IconButton onClick={() => handleDeleteEvent(evt.id)} color="error"><DeleteIcon /></IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )) : (
+                                        <TableRow><TableCell colSpan={5} align="center">Akademik takvim verisi bulunamadı</TableCell></TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Paper>
                 </TabPanel>
             </Box>
 
@@ -558,7 +622,7 @@ const AdminDashboard = () => {
 
             {/* Create Event Dialog */}
             <Dialog open={openEventDialog} onClose={() => setOpenEventDialog(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Yeni Etkinlik / Takvim Öğesi</DialogTitle>
+                <DialogTitle>{activeTab === 4 ? 'Yeni Akademik Takvim Öğesi' : 'Yeni Etkinlik'}</DialogTitle>
                 <DialogContent>
                     <Stack spacing={2} sx={{ mt: 1 }}>
                         <TextField label="Başlık" fullWidth value={newEvent.title} onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })} />
@@ -566,26 +630,35 @@ const AdminDashboard = () => {
 
                         <FormControl fullWidth>
                             <InputLabel>Tip</InputLabel>
-                            <Select value={newEvent.eventType} label="Tip" onChange={(e) => setNewEvent({ ...newEvent, eventType: e.target.value })}>
-                                <MenuItem value="academic">Akademik (Takvim)</MenuItem>
-                                <MenuItem value="exam">Sınav (Takvim)</MenuItem>
-                                <MenuItem value="holiday">Tatil (Takvim)</MenuItem>
-                                <MenuItem value="registration">Kayıt (Takvim)</MenuItem>
-                                <MenuItem value="seminar">Seminer</MenuItem>
-                                <MenuItem value="conference">Konferans</MenuItem>
-                                <MenuItem value="social">Sosyal</MenuItem>
-                                <MenuItem value="other">Diğer</MenuItem>
-                            </Select>
+                            {activeTab === 4 ? (
+                                <Select value={newEvent.eventType} label="Tip" onChange={(e) => setNewEvent({ ...newEvent, eventType: e.target.value })}>
+                                    <MenuItem value="academic">Akademik (Genel)</MenuItem>
+                                    <MenuItem value="exam">Sınav Dönemi</MenuItem>
+                                    <MenuItem value="holiday">Resmi Tatil</MenuItem>
+                                    <MenuItem value="registration">Kayıt Dönemi</MenuItem>
+                                    <MenuItem value="ceremony">Tören</MenuItem>
+                                </Select>
+                            ) : (
+                                <Select value={newEvent.eventType} label="Tip" onChange={(e) => setNewEvent({ ...newEvent, eventType: e.target.value })}>
+                                    <MenuItem value="seminar">Seminer</MenuItem>
+                                    <MenuItem value="conference">Konferans</MenuItem>
+                                    <MenuItem value="social">Sosyal</MenuItem>
+                                    <MenuItem value="workshop">Atölye</MenuItem>
+                                    <MenuItem value="other">Diğer</MenuItem>
+                                </Select>
+                            )}
                         </FormControl>
 
-                        <FormControl fullWidth>
-                            <InputLabel>Öncelik</InputLabel>
-                            <Select value={newEvent.priority} label="Öncelik" onChange={(e) => setNewEvent({ ...newEvent, priority: e.target.value })}>
-                                <MenuItem value="normal">Normal</MenuItem>
-                                <MenuItem value="high">Yüksek</MenuItem>
-                                <MenuItem value="urgent">Acil</MenuItem>
-                            </Select>
-                        </FormControl>
+                        {activeTab !== 4 && (
+                            <FormControl fullWidth>
+                                <InputLabel>Öncelik</InputLabel>
+                                <Select value={newEvent.priority} label="Öncelik" onChange={(e) => setNewEvent({ ...newEvent, priority: e.target.value })}>
+                                    <MenuItem value="normal">Normal</MenuItem>
+                                    <MenuItem value="high">Yüksek</MenuItem>
+                                    <MenuItem value="urgent">Acil</MenuItem>
+                                </Select>
+                            </FormControl>
+                        )}
 
                         <TextField
                             label="Başlangıç Tarihi"
