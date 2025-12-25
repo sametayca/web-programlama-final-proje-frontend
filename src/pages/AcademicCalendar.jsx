@@ -30,193 +30,53 @@ import {
 } from '@mui/icons-material'
 import Layout from '../components/Layout'
 
-// Örnek akademik takvim verileri
-const academicEvents = [
-  {
-    id: 1,
-    title: 'Güz Dönemi Başlangıcı',
-    date: '2024-09-16',
-    type: 'academic',
-    priority: 'high',
-    description: '2024-2025 Akademik Yılı Güz Dönemi başlangıcı',
-    category: 'Dönem Başlangıcı'
-  },
-  {
-    id: 2,
-    title: 'Kayıt Yenileme',
-    date: '2024-09-09',
-    type: 'registration',
-    priority: 'urgent',
-    description: 'Tüm öğrenciler için kayıt yenileme işlemleri',
-    category: 'Kayıt'
-  },
-  {
-    id: 3,
-    title: 'Vize Haftası',
-    date: '2024-11-04',
-    type: 'exam',
-    priority: 'high',
-    description: 'Güz dönemi vize sınavları başlangıcı',
-    category: 'Sınav'
-  },
-  {
-    id: 4,
-    title: 'Vize Haftası Bitişi',
-    date: '2024-11-08',
-    type: 'exam',
-    priority: 'high',
-    description: 'Güz dönemi vize sınavları son günü',
-    category: 'Sınav'
-  },
-  {
-    id: 5,
-    title: 'Atatürk Haftası',
-    date: '2024-10-29',
-    type: 'holiday',
-    priority: 'normal',
-    description: '29 Ekim Cumhuriyet Bayramı ve Atatürk Haftası',
-    category: 'Bayram'
-  },
-  {
-    id: 6,
-    title: 'Final Haftası',
-    date: '2024-12-23',
-    type: 'exam',
-    priority: 'urgent',
-    description: 'Güz dönemi final sınavları başlangıcı',
-    category: 'Sınav'
-  },
-  {
-    id: 7,
-    title: 'Final Haftası Bitişi',
-    date: '2024-12-27',
-    type: 'exam',
-    priority: 'urgent',
-    description: 'Güz dönemi final sınavları son günü',
-    category: 'Sınav'
-  },
-  {
-    id: 8,
-    title: 'Güz Dönemi Bitişi',
-    date: '2024-12-31',
-    type: 'academic',
-    priority: 'high',
-    description: '2024-2025 Akademik Yılı Güz Dönemi sonu',
-    category: 'Dönem Bitişi'
-  },
-  {
-    id: 9,
-    title: 'Bahar Dönemi Başlangıcı',
-    date: '2025-02-10',
-    type: 'academic',
-    priority: 'high',
-    description: '2024-2025 Akademik Yılı Bahar Dönemi başlangıcı',
-    category: 'Dönem Başlangıcı'
-  },
-  {
-    id: 10,
-    title: 'Bahar Dönemi Kayıt Yenileme',
-    date: '2025-02-03',
-    type: 'registration',
-    priority: 'urgent',
-    description: 'Bahar dönemi kayıt yenileme işlemleri',
-    category: 'Kayıt'
-  },
-  {
-    id: 11,
-    title: '23 Nisan Ulusal Egemenlik ve Çocuk Bayramı',
-    date: '2025-04-23',
-    type: 'holiday',
-    priority: 'normal',
-    description: '23 Nisan Ulusal Egemenlik ve Çocuk Bayramı',
-    category: 'Bayram'
-  },
-  {
-    id: 12,
-    title: 'Bahar Dönemi Vize Haftası',
-    date: '2025-04-07',
-    type: 'exam',
-    priority: 'high',
-    description: 'Bahar dönemi vize sınavları',
-    category: 'Sınav'
-  },
-  {
-    id: 13,
-    title: 'Bahar Dönemi Vize Haftası Bitişi',
-    date: '2025-04-11',
-    type: 'exam',
-    priority: 'high',
-    description: 'Bahar dönemi vize sınavları son günü',
-    category: 'Sınav'
-  },
-  {
-    id: 14,
-    title: '19 Mayıs Atatürk\'ü Anma, Gençlik ve Spor Bayramı',
-    date: '2025-05-19',
-    type: 'holiday',
-    priority: 'normal',
-    description: '19 Mayıs Atatürk\'ü Anma, Gençlik ve Spor Bayramı',
-    category: 'Bayram'
-  },
-  {
-    id: 15,
-    title: 'Bahar Dönemi Final Haftası',
-    date: '2025-06-09',
-    type: 'exam',
-    priority: 'urgent',
-    description: 'Bahar dönemi final sınavları başlangıcı',
-    category: 'Sınav'
-  },
-  {
-    id: 16,
-    title: 'Bahar Dönemi Final Haftası Bitişi',
-    date: '2025-06-13',
-    type: 'exam',
-    priority: 'urgent',
-    description: 'Bahar dönemi final sınavları son günü',
-    category: 'Sınav'
-  },
-  {
-    id: 17,
-    title: 'Bahar Dönemi Bitişi',
-    date: '2025-06-20',
-    type: 'academic',
-    priority: 'high',
-    description: '2024-2025 Akademik Yılı Bahar Dönemi sonu',
-    category: 'Dönem Bitişi'
-  },
-  {
-    id: 18,
-    title: 'Yaz Okulu Başlangıcı',
-    date: '2025-07-01',
-    type: 'academic',
-    priority: 'normal',
-    description: 'Yaz okulu dönemi başlangıcı',
-    category: 'Yaz Okulu'
-  },
-  {
-    id: 19,
-    title: 'Yaz Okulu Bitişi',
-    date: '2025-08-15',
-    type: 'academic',
-    priority: 'normal',
-    description: 'Yaz okulu dönemi sonu',
-    category: 'Yaz Okulu'
-  },
-  {
-    id: 20,
-    title: 'Mezuniyet Töreni',
-    date: '2025-06-30',
-    type: 'ceremony',
-    priority: 'high',
-    description: '2024-2025 Akademik Yılı Mezuniyet Töreni',
-    category: 'Tören'
-  }
-]
-
+// Hardcoded data removed. Using API.
 const AcademicCalendar = () => {
+  const [academicEvents, setAcademicEvents] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedSemester, setSelectedSemester] = useState('all')
   const [selectedCategory, setSelectedCategory] = useState('all')
+
+  useEffect(() => {
+    fetchEvents()
+  }, [])
+
+  const fetchEvents = async () => {
+    try {
+      // Fetch all events. In production, we might want to filter by type='academic,exam,...'
+      // For now, checking all events and we will filter in UI or backend if needed.
+      const response = await import('../services/api').then(module => module.eventService.getEvents({ limit: 200 }))
+      if (response.data.success) {
+        // Map backend eventType to frontend categories if needed
+        const fetchedEvents = response.data.data.events.map(evt => ({
+          id: evt.id,
+          title: evt.title,
+          date: evt.startDate, // Using start date
+          type: evt.eventType,
+          priority: evt.priority || 'normal',
+          description: evt.description,
+          category: mapTypeToCategory(evt.eventType)
+        }))
+        setAcademicEvents(fetchedEvents)
+      }
+    } catch (error) {
+      console.error('Failed to load academic calendar', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const mapTypeToCategory = (type) => {
+    switch (type) {
+      case 'academic': return 'Akademik';
+      case 'exam': return 'Sınav';
+      case 'holiday': return 'Bayram';
+      case 'registration': return 'Kayıt';
+      case 'ceremony': return 'Tören';
+      default: return 'Genel';
+    }
+  }
+
 
   const getEventIcon = (type) => {
     switch (type) {
@@ -269,7 +129,7 @@ const AcademicCalendar = () => {
   const filteredEvents = academicEvents.filter(event => {
     const eventDate = new Date(event.date)
     const currentYear = new Date().getFullYear()
-    
+
     if (selectedSemester === 'fall') {
       return eventDate >= new Date(`${currentYear}-09-01`) && eventDate <= new Date(`${currentYear}-12-31`)
     } else if (selectedSemester === 'spring') {
@@ -277,11 +137,11 @@ const AcademicCalendar = () => {
     } else if (selectedSemester === 'summer') {
       return eventDate >= new Date(`${currentYear + 1}-07-01`) && eventDate <= new Date(`${currentYear + 1}-08-31`)
     }
-    
+
     if (selectedCategory !== 'all') {
       return event.category === selectedCategory
     }
-    
+
     return true
   })
 
