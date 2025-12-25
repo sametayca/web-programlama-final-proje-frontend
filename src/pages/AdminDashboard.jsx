@@ -147,7 +147,8 @@ const AdminDashboard = () => {
         startDate: '',
         endDate: '',
         location: '',
-        priority: 'normal'
+        priority: 'normal',
+        capacity: 100 // Default capacity
     })
 
     useEffect(() => {
@@ -282,14 +283,19 @@ const AdminDashboard = () => {
 
     const handleCreateEvent = async () => {
         try {
-            await eventService.createEvent(newEvent)
+            // For academic events, ensure a dummy capacity if not provided
+            const eventData = { ...newEvent };
+            if (activeTab === 4) {
+                eventData.capacity = 5000; // Unlimited/High for academic events
+            }
+            await eventService.createEvent(eventData)
             toast.success('Etkinlik oluşturuldu')
             setOpenEventDialog(false)
             fetchContent()
             // Reset form
             setNewEvent({
                 title: '', description: '', eventType: 'other',
-                startDate: '', endDate: '', location: '', priority: 'normal'
+                startDate: '', endDate: '', location: '', priority: 'normal', capacity: 100
             })
         } catch (err) {
             console.error(err)
@@ -426,7 +432,7 @@ const AdminDashboard = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                 <Typography variant="h6">Etkinlik Yönetimi (Sosyal, Seminer vb.)</Typography>
                                 <Button startIcon={<AddIcon />} variant="contained" onClick={() => {
-                                    setNewEvent({ ...newEvent, eventType: 'social', title: '' }); // Reset to default social type
+                                    setNewEvent({ ...newEvent, eventType: 'social', title: '', capacity: 100 }); // Reset to default social type
                                     setOpenEventDialog(true);
                                 }}>Yeni Etkinlik Ekle</Button>
                             </Box>
@@ -512,7 +518,7 @@ const AdminDashboard = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Akademik Takvim Yönetimi 📅</Typography>
                         <Button startIcon={<AddIcon />} variant="contained" color="warning" onClick={() => {
-                            setNewEvent({ ...newEvent, eventType: 'academic', title: '' }); // Reset to default academic type
+                            setNewEvent({ ...newEvent, eventType: 'academic', title: '', capacity: 5000 }); // Reset to default academic type
                             setOpenEventDialog(true);
                         }}>Yeni Akademik Tarih Ekle</Button>
                     </Box>
@@ -648,6 +654,18 @@ const AdminDashboard = () => {
                                 </Select>
                             )}
                         </FormControl>
+
+                        {/* Capacity - Only for non-academic events or default for academic */}
+                        {activeTab !== 4 && (
+                            <TextField
+                                label="Kapasite (Kişi Sayısı)"
+                                type="number"
+                                fullWidth
+                                value={newEvent.capacity || ''}
+                                onChange={(e) => setNewEvent({ ...newEvent, capacity: parseInt(e.target.value) })}
+                                helperText="Katılımcı sınırı yoksa büyük bir sayı giriniz"
+                            />
+                        )}
 
                         {activeTab !== 4 && (
                             <FormControl fullWidth>
