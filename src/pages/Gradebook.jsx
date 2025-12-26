@@ -121,7 +121,7 @@ const Gradebook = () => {
       await Promise.all(savePromises)
 
       toast.success('Notlar başarıyla kaydedildi!')
-      
+
       // Refresh data
       await fetchData()
     } catch (err) {
@@ -253,7 +253,7 @@ const Gradebook = () => {
                     students.map((enrollment) => {
                       const student = enrollment.student
                       const gradeData = grades[enrollment.id] || { midtermGrade: '', finalGrade: '' }
-                      
+
                       return (
                         <TableRow key={enrollment.id} hover>
                           <TableCell>{student.studentProfile?.studentNumber || 'N/A'}</TableCell>
@@ -287,10 +287,10 @@ const Gradebook = () => {
                                 label={enrollment.letterGrade}
                                 color={
                                   enrollment.letterGrade === 'A' ? 'success' :
-                                  enrollment.letterGrade === 'B' ? 'info' :
-                                  enrollment.letterGrade === 'C' ? 'warning' :
-                                  enrollment.letterGrade === 'D' ? 'error' :
-                                  'error'
+                                    enrollment.letterGrade === 'B' ? 'info' :
+                                      enrollment.letterGrade === 'C' ? 'warning' :
+                                        enrollment.letterGrade === 'D' ? 'error' :
+                                          'error'
                                 }
                                 size="small"
                               />
@@ -299,8 +299,8 @@ const Gradebook = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            {enrollment.gradePoint ? (
-                              <Typography variant="body2">{enrollment.gradePoint.toFixed(2)}</Typography>
+                            {enrollment.gradePoint !== null && enrollment.gradePoint !== undefined ? (
+                              <Typography variant="body2">{Number(enrollment.gradePoint).toFixed(2)}</Typography>
                             ) : (
                               <Typography variant="body2" color="text.secondary">-</Typography>
                             )}
