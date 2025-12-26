@@ -17,9 +17,10 @@ import {
   Menu,
   MenuItem,
   Chip,
-  useTheme,
+  useTheme as useMuiTheme,
   useMediaQuery,
-  Badge
+  Badge,
+  Tooltip
 } from '@mui/material'
 import {
   Menu as MenuIcon,
@@ -43,17 +44,28 @@ import {
   AccountBalanceWallet as WalletIcon,
   Event as EventIcon,
   Schedule as ScheduleIcon,
-  MeetingRoom as MeetingRoomIcon
+  MeetingRoom as MeetingRoomIcon,
+  Analytics as AnalyticsIcon,
+  Sensors as SensorsIcon,
+  Settings as SettingsIcon,
+  Brightness4,
+  Brightness7,
+  Language as LanguageIcon
 } from '@mui/icons-material'
 import { useAuth } from '../context/AuthContext'
+import { useTranslation } from 'react-i18next'
+import { useTheme } from '../context/ThemeContext'
 
 const drawerWidth = 280
 
 const Layout = ({ children }) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const muiTheme = useMuiTheme()
+  const { mode, toggleTheme } = useTheme()
+  const { t, i18n } = useTranslation()
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'))
   const [mobileOpen, setMobileOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null)
+  const [langAnchorEl, setLangAnchorEl] = useState(null)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -70,33 +82,52 @@ const Layout = ({ children }) => {
     setAnchorEl(null)
   }
 
+  const handleLangClick = (event) => {
+    setLangAnchorEl(event.currentTarget)
+  }
+
+  const handleLangClose = () => {
+    setLangAnchorEl(null)
+  }
+
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang)
+    handleLangClose()
+  }
+
   const handleLogout = () => {
     handleMenuClose()
     logout()
   }
 
   const menuItems = [
-    { text: 'Ana Sayfa', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Yönetici Paneli', icon: <AssessmentIcon />, path: '/admin-dashboard', roles: ['admin'] },
-    { text: 'Profil', icon: <PersonIcon />, path: '/profile' },
-    { text: 'Duyurular', icon: <AnnouncementIcon />, path: '/announcements' },
+    { text: t('nav.dashboard', 'Ana Sayfa'), icon: <DashboardIcon />, path: '/dashboard' },
+    { text: t('analytics.dashboard', 'Yönetici Paneli'), icon: <AssessmentIcon />, path: '/admin-dashboard', roles: ['admin'] },
+    // Part 4 - Admin Features
+    { text: t('nav.analytics', 'Analitik Dashboard'), icon: <AnalyticsIcon />, path: '/admin/analytics', roles: ['admin'] },
+    { text: t('nav.iot', 'IoT Sensörleri'), icon: <SensorsIcon />, path: '/admin/iot', roles: ['admin'] },
+    { text: t('nav.profile', 'Profil'), icon: <PersonIcon />, path: '/profile' },
+    // Part 4 - Notifications
+    { text: t('nav.notifications', 'Bildirimler'), icon: <NotificationsIcon />, path: '/notifications' },
+    { text: t('notifications.settings', 'Bildirim Ayarları'), icon: <SettingsIcon />, path: '/notifications/settings' },
+    { text: t('nav.announcements', 'Duyurular'), icon: <AnnouncementIcon />, path: '/announcements' },
     { text: 'Akademik Takvim', icon: <CalendarTodayIcon />, path: '/academic-calendar' },
     // Part 2 - Academic Management
-    { text: 'Ders Kataloğu', icon: <BookIcon />, path: '/courses', roles: ['student', 'faculty', 'admin'] },
-    { text: 'Derslerim', icon: <SchoolIcon />, path: '/my-courses', roles: ['student'] },
-    { text: 'Notlarım', icon: <AssessmentIcon />, path: '/grades', roles: ['student'] },
-    { text: 'Devamsızlığım', icon: <LocationOnIcon />, path: '/my-attendance', roles: ['student'] },
+    { text: t('courses.catalog', 'Ders Kataloğu'), icon: <BookIcon />, path: '/courses', roles: ['student', 'faculty', 'admin'] },
+    { text: t('nav.myCourses', 'Derslerim'), icon: <SchoolIcon />, path: '/my-courses', roles: ['student'] },
+    { text: t('nav.grades', 'Notlarım'), icon: <AssessmentIcon />, path: '/grades', roles: ['student'] },
+    { text: t('nav.attendance', 'Devamsızlığım'), icon: <LocationOnIcon />, path: '/my-attendance', roles: ['student'] },
     // Faculty only
-    { text: 'Derslerim', icon: <SchoolIcon />, path: '/faculty-courses', roles: ['faculty'] },
+    { text: t('nav.myCourses', 'Derslerim'), icon: <SchoolIcon />, path: '/faculty-courses', roles: ['faculty'] },
     { text: 'Yoklama Başlat', icon: <HowToRegIcon />, path: '/attendance/start', roles: ['faculty'] },
     { text: 'Mazeret Talepleri', icon: <AssignmentIcon />, path: '/excuse-requests', roles: ['faculty'] },
     // Part 3 - New Features
-    { text: 'Yemek Menüsü', icon: <RestaurantIcon />, path: '/meals/menu', roles: ['student'] },
-    { text: 'Yemek Rezervasyonlarım', icon: <BookmarkIcon />, path: '/meals/reservations', roles: ['student'] },
-    { text: 'Cüzdan', icon: <WalletIcon />, path: '/wallet', roles: ['student'] },
-    { text: 'Etkinlikler', icon: <EventIcon />, path: '/events' },
-    { text: 'Ders Programım', icon: <ScheduleIcon />, path: '/schedule', roles: ['student'] },
-    { text: 'Sınıf Rezervasyonu', icon: <MeetingRoomIcon />, path: '/reservations' },
+    { text: t('meals.menu', 'Yemek Menüsü'), icon: <RestaurantIcon />, path: '/meals/menu', roles: ['student'] },
+    { text: t('meals.reservations', 'Yemek Rezervasyonlarım'), icon: <BookmarkIcon />, path: '/meals/reservations', roles: ['student'] },
+    { text: t('nav.wallet', 'Cüzdan'), icon: <WalletIcon />, path: '/wallet', roles: ['student'] },
+    { text: t('nav.events', 'Etkinlikler'), icon: <EventIcon />, path: '/events' },
+    { text: t('nav.schedule', 'Ders Programım'), icon: <ScheduleIcon />, path: '/schedule', roles: ['student'] },
+    { text: t('nav.reservations', 'Sınıf Rezervasyonu'), icon: <MeetingRoomIcon />, path: '/reservations' },
   ].filter(item => {
     // Filter menu items based on user role
     if (!item.roles) return true
@@ -109,7 +140,9 @@ const Layout = ({ children }) => {
       <Box
         sx={{
           p: 3,
-          background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%)',
+          background: muiTheme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+            : 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%)',
           backgroundSize: '200% 200%',
           animation: 'gradient 15s ease infinite',
           color: 'white',
@@ -193,6 +226,8 @@ const Layout = ({ children }) => {
       <List sx={{ pt: 2, flexGrow: 1, bgcolor: 'rgba(255, 255, 255, 0.02)' }}>
         {menuItems.map((item, index) => {
           const isActive = location.pathname === item.path
+          const textColor = (isActive || mode === 'dark') ? '#ffffff !important' : 'text.primary'
+
           return (
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5, px: 1 }}>
               <ListItemButton
@@ -212,31 +247,21 @@ const Layout = ({ children }) => {
                   boxShadow: isActive
                     ? '0 4px 20px rgba(14, 165, 233, 0.4)'
                     : 'none',
-                  '& .MuiListItemIcon-root': {
-                    color: `${isActive ? 'white' : '#000000'} !important`
-                  },
-                  '& .MuiListItemText-primary': {
-                    color: `${isActive ? 'white' : '#000000'} !important`,
-                    fontWeight: '700 !important'
-                  },
                   '& .MuiTypography-root': {
-                    color: `${isActive ? 'white' : '#000000'} !important`,
-                    fontWeight: '700 !important'
+                    color: isActive ? '#ffffff !important' : mode === 'dark' ? '#e2e8f0 !important' : 'text.primary',
+                    fontWeight: isActive ? '700 !important' : '500'
+                  },
+                  '& .MuiSvgIcon-root': {
+                    color: isActive ? '#ffffff !important' : mode === 'dark' ? '#e2e8f0 !important' : 'text.primary',
                   },
                   '&:hover': {
                     bgcolor: isActive
                       ? 'linear-gradient(135deg, #0284c7 0%, #0d9488 100%)'
-                      : 'rgba(14, 165, 233, 0.12)',
+                      : 'action.hover',
                     transform: 'translateX(8px)',
                     boxShadow: '0 4px 20px rgba(14, 165, 233, 0.25)',
-                    '& .MuiListItemIcon-root': {
-                      color: `${isActive ? 'white' : '#0ea5e9'} !important`
-                    },
-                    '& .MuiListItemText-primary': {
-                      color: `${isActive ? 'white' : '#0ea5e9'} !important`
-                    },
-                    '& .MuiTypography-root': {
-                      color: `${isActive ? 'white' : '#0ea5e9'} !important`
+                    '& .MuiTypography-root, & .MuiSvgIcon-root': {
+                      color: isActive ? '#ffffff !important' : 'primary.main'
                     }
                   },
                   '&::before': isActive ? {
@@ -252,23 +277,13 @@ const Layout = ({ children }) => {
                   } : {}
                 }}
               >
-                <ListItemIcon sx={{ color: isActive ? 'white' : '#000000 !important' }}>
+                <ListItemIcon sx={{ minWidth: 40 }}>
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.text}
-                  sx={{
-                    '& .MuiTypography-root': {
-                      color: isActive ? 'white' : '#000000 !important',
-                      fontWeight: '700 !important'
-                    }
-                  }}
                   primaryTypographyProps={{
-                    fontWeight: 700,
-                    fontSize: '1rem',
-                    sx: {
-                      color: isActive ? 'white' : '#000000 !important'
-                    }
+                    fontSize: '1rem'
                   }}
                 />
               </ListItemButton>
@@ -276,7 +291,7 @@ const Layout = ({ children }) => {
           )
         })}
       </List>
-    </Box>
+    </Box >
   )
 
   return (
@@ -286,12 +301,13 @@ const Layout = ({ children }) => {
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          background: 'rgba(255, 255, 255, 0.85)',
+          background: muiTheme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.85)' : 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           color: 'text.primary',
           boxShadow: '0 1px 20px rgba(0,0,0,0.08)',
-          borderBottom: '1px solid rgba(0,0,0,0.05)'
+          borderBottom: '1px solid',
+          borderColor: 'divider'
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
@@ -319,94 +335,125 @@ const Layout = ({ children }) => {
           >
             🎓 Akıllı Kampüs Yönetim Platformu
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Badge badgeContent={3} color="error">
-              <IconButton sx={{
-                bgcolor: 'rgba(102, 126, 234, 0.1)',
-                '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.2)' }
-              }}>
-                <NotificationsIcon />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* Theme Toggle */}
+            <Tooltip title={mode === 'dark' ? t('Aydınlık Mod', 'Aydınlık Mod') : t('Karanlık Mod', 'Karanlık Mod')}>
+              <IconButton onClick={toggleTheme} color="inherit">
+                {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
               </IconButton>
-            </Badge>
-            {user?.isEmailVerified ? (
-              <Chip
-                icon={<VerifiedUserIcon sx={{ fontSize: 18 }} />}
-                label="Doğrulanmış"
-                color="success"
-                size="small"
-                sx={{ fontWeight: 600 }}
-              />
-            ) : (
-              <Chip
-                icon={<EmailIcon sx={{ fontSize: 18 }} />}
-                label="Doğrulanmamış"
-                color="warning"
-                size="small"
-                sx={{ fontWeight: 600 }}
-              />
-            )}
-            <IconButton
-              onClick={handleMenuOpen}
-              sx={{
-                p: 0,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.1)'
-                }
-              }}
-            >
-              <Avatar
-                src={user?.profilePicture ? `http://localhost:3000/uploads/profile-pictures/${user.profilePicture}` : ''}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  border: '2px solid',
-                  borderColor: 'primary.main',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-                }}
-              >
-                <AccountCircle />
-              </Avatar>
-            </IconButton>
+            </Tooltip>
+
+            {/* Language Switcher */}
+            <Tooltip title={t('Dil Değiştir', 'Dil Değiştir')}>
+              <IconButton onClick={handleLangClick} color="inherit">
+                <LanguageIcon />
+              </IconButton>
+            </Tooltip>
             <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              anchorEl={langAnchorEl}
+              open={Boolean(langAnchorEl)}
+              onClose={handleLangClose}
               PaperProps={{
-                sx: {
-                  mt: 1.5,
-                  borderRadius: 3,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                  minWidth: 180,
-                  border: '1px solid rgba(0,0,0,0.05)'
-                }
+                sx: { mt: 1.5, borderRadius: 3, minWidth: 150 }
               }}
             >
-              <MenuItem
-                onClick={() => { navigate('/profile'); handleMenuClose(); }}
-                sx={{ py: 1.5, px: 2 }}
-              >
-                <ListItemIcon>
-                  <PersonIcon fontSize="small" />
-                </ListItemIcon>
-                Profil
+              <MenuItem onClick={() => changeLanguage('tr')} selected={i18n.language === 'tr'}>
+                �🇷 Türkçe
               </MenuItem>
-              <Divider />
-              <MenuItem
-                onClick={handleLogout}
-                sx={{ py: 1.5, px: 2, color: 'error.main' }}
-              >
-                <ListItemIcon>
-                  <LogoutIcon fontSize="small" color="error" />
-                </ListItemIcon>
-                Çıkış Yap
+              <MenuItem onClick={() => changeLanguage('en')} selected={i18n.language === 'en'}>
+                �🇬🇧 English
               </MenuItem>
             </Menu>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+              <Badge badgeContent={3} color="error">
+                <IconButton sx={{
+                  bgcolor: 'rgba(102, 126, 234, 0.1)',
+                  '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.2)' }
+                }}>
+                  <NotificationsIcon />
+                </IconButton>
+              </Badge>
+              {user?.isEmailVerified ? (
+                <Chip
+                  icon={<VerifiedUserIcon sx={{ fontSize: 18 }} />}
+                  label="Doğrulanmış"
+                  color="success"
+                  size="small"
+                  sx={{ fontWeight: 600 }}
+                />
+              ) : (
+                <Chip
+                  icon={<EmailIcon sx={{ fontSize: 18 }} />}
+                  label="Doğrulanmamış"
+                  color="warning"
+                  size="small"
+                  sx={{ fontWeight: 600 }}
+                />
+              )}
+              <IconButton
+                onClick={handleMenuOpen}
+                sx={{
+                  p: 0,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.1)'
+                  }
+                }}
+              >
+                <Avatar
+                  src={user?.profilePicture ? `http://localhost:3000/uploads/profile-pictures/${user.profilePicture}` : ''}
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                  }}
+                >
+                  <AccountCircle />
+                </Avatar>
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                PaperProps={{
+                  sx: {
+                    mt: 1.5,
+                    borderRadius: 3,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                    minWidth: 180,
+                    border: '1px solid rgba(0,0,0,0.05)'
+                  }
+                }}
+              >
+                <MenuItem
+                  onClick={() => { navigate('/profile'); handleMenuClose(); }}
+                  sx={{ py: 1.5, px: 2 }}
+                >
+                  <ListItemIcon>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
+                  Profil
+                </MenuItem>
+                <Divider />
+                <MenuItem
+                  onClick={handleLogout}
+                  sx={{ py: 1.5, px: 2, color: 'error.main' }}
+                >
+                  <ListItemIcon>
+                    <LogoutIcon fontSize="small" color="error" />
+                  </ListItemIcon>
+                  Çıkış Yap
+                </MenuItem>
+              </Menu>
+            </Box>
           </Box>
-        </Toolbar>
-      </AppBar>
+        </Toolbar >
+      </AppBar >
       <Box
         component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
@@ -439,7 +486,7 @@ const Layout = ({ children }) => {
               width: drawerWidth,
               borderRight: 'none',
               boxShadow: '4px 0 24px rgba(0,0,0,0.08)',
-              background: '#ffffff'
+              background: 'background.paper'
             },
           }}
           open
@@ -455,7 +502,9 @@ const Layout = ({ children }) => {
           width: { md: `calc(100% - ${drawerWidth}px)` },
           mt: '64px',
           minHeight: 'calc(100vh - 64px)',
-          background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(6, 182, 212, 0.08) 50%, rgba(20, 184, 166, 0.05) 100%)',
+          background: muiTheme.palette.mode === 'dark'
+            ? muiTheme.palette.background.default
+            : 'linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(6, 182, 212, 0.08) 50%, rgba(20, 184, 166, 0.05) 100%)',
           position: 'relative',
           '&::before': {
             content: '""',
@@ -465,7 +514,8 @@ const Layout = ({ children }) => {
             right: 0,
             bottom: 0,
             background: 'radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(20, 184, 166, 0.08) 0%, transparent 50%)',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            display: muiTheme.palette.mode === 'dark' ? 'none' : 'block'
           }
         }}
       >
@@ -473,7 +523,7 @@ const Layout = ({ children }) => {
           {children}
         </Box>
       </Box>
-    </Box>
+    </Box >
   )
 }
 

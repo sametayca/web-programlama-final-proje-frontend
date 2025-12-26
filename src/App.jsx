@@ -53,6 +53,16 @@ const GenerateSchedule = lazy(() => import('./pages/schedule/GenerateSchedule'))
 // Part 3 - Classroom Reservations
 const ClassroomReservations = lazy(() => import('./pages/reservations/ClassroomReservations'))
 
+// Part 4 - Analytics
+const AdminAnalyticsDashboard = lazy(() => import('./pages/admin/AdminAnalyticsDashboard'))
+
+// Part 4 - Notifications
+const Notifications = lazy(() => import('./pages/Notifications'))
+const NotificationSettings = lazy(() => import('./pages/NotificationSettings'))
+
+// Part 4 - IoT Sensors
+const IoTDashboard = lazy(() => import('./pages/admin/IoTDashboard'))
+
 // Loading fallback component
 const LoadingFallback = () => (
   <Box
@@ -353,6 +363,44 @@ function App() {
           element={
             <ProtectedRoute>
               <ClassroomReservations />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Part 4 - Analytics Routes */}
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminAnalyticsDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Part 4 - Notification Routes */}
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications/settings"
+          element={
+            <ProtectedRoute>
+              <NotificationSettings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Part 4 - IoT Dashboard Route */}
+        <Route
+          path="/admin/iot"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <IoTDashboard />
             </ProtectedRoute>
           }
         />

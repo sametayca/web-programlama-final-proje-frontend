@@ -14,7 +14,8 @@ import {
   Stack,
   IconButton,
   Fade,
-  Grow
+  Grow,
+  useTheme
 } from '@mui/material'
 import {
   School as SchoolIcon,
@@ -32,91 +33,103 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { authService } from '../services/api'
 import Layout from '../components/Layout'
+import { useTranslation } from 'react-i18next'
 
-const StatCard = ({ title, value, icon, color, subtitle, delay = 0 }) => (
-  <Grow in={true} timeout={600} style={{ transitionDelay: `${delay}ms` }}>
-    <Card 
-      sx={{ 
-        height: '100%', 
-        position: 'relative', 
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(102, 126, 234, 0.1)',
-        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': {
-          transform: 'translateY(-8px)',
-          boxShadow: '0 12px 40px rgba(102, 126, 234, 0.2)',
-          borderColor: 'primary.main',
-        }
-      }}
-    >
-      {/* Animated background circle */}
-      <Box
+const StatCard = ({ title, value, icon, color, subtitle, delay = 0 }) => {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === 'dark'
+
+  return (
+    <Grow in={true} timeout={600} style={{ transitionDelay: `${delay}ms` }}>
+      <Card
         sx={{
-          position: 'absolute',
-          top: -50,
-          right: -50,
-          width: 200,
-          height: 200,
-          borderRadius: '50%',
-          background: `linear-gradient(135deg, ${color === 'primary' ? '#0ea5e9' : color === 'success' ? '#10b981' : color === 'warning' ? '#f59e0b' : '#ec4899'}33 0%, transparent 70%)`,
-          animation: 'pulse 4s ease-in-out infinite',
+          height: '100%',
+          position: 'relative',
+          overflow: 'hidden',
+          background: isDark ? 'background.paper' : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid',
+          borderColor: isDark ? 'divider' : 'rgba(102, 126, 234, 0.1)',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            transform: 'translateY(-8px)',
+            boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.4)' : '0 12px 40px rgba(102, 126, 234, 0.2)',
+            borderColor: 'primary.main',
+          }
         }}
-      />
-      <CardContent sx={{ position: 'relative', zIndex: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box>
-            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-              {title}
-            </Typography>
-            <Typography 
-              variant="h4" 
-              sx={{ 
-                fontWeight: 800, 
-                background: `linear-gradient(135deg, ${color === 'primary' ? '#0ea5e9' : color === 'success' ? '#10b981' : color === 'warning' ? '#f59e0b' : '#ec4899'} 0%, ${color === 'primary' ? '#14b8a6' : color === 'success' ? '#059669' : color === 'warning' ? '#d97706' : '#db2777'})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                mb: 0.5
+      >
+        {/* Animated background circle */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: -50,
+            right: -50,
+            width: 200,
+            height: 200,
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${color === 'primary' ? '#0ea5e9' : color === 'success' ? '#10b981' : color === 'warning' ? '#f59e0b' : '#ec4899'}33 0%, transparent 70%)`,
+            animation: 'pulse 4s ease-in-out infinite',
+            opacity: isDark ? 0.2 : 1
+          }}
+        />
+        <CardContent sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                {title}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 800,
+                  background: `linear-gradient(135deg, ${color === 'primary' ? '#0ea5e9' : color === 'success' ? '#10b981' : color === 'warning' ? '#f59e0b' : '#ec4899'} 0%, ${color === 'primary' ? '#14b8a6' : color === 'success' ? '#059669' : color === 'warning' ? '#d97706' : '#db2777'})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  mb: 0.5,
+                  textShadow: isDark ? '0 0 20px rgba(0,0,0,0.5)' : 'none'
+                }}
+              >
+                {value}
+              </Typography>
+              {subtitle && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', fontWeight: 500 }}>
+                  {subtitle}
+                </Typography>
+              )}
+            </Box>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: 3,
+                background: `linear-gradient(135deg, ${color === 'primary' ? '#667eea' : color === 'success' ? '#10b981' : color === 'warning' ? '#f59e0b' : '#ec4899'} 0%, ${color === 'primary' ? '#764ba2' : color === 'success' ? '#059669' : color === 'warning' ? '#d97706' : '#db2777'})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                boxShadow: `0 8px 24px ${color === 'primary' ? 'rgba(102, 126, 234, 0.3)' : color === 'success' ? 'rgba(16, 185, 129, 0.3)' : color === 'warning' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(236, 72, 153, 0.3)'}`,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'rotate(10deg) scale(1.1)',
+                }
               }}
             >
-              {value}
-            </Typography>
-            {subtitle && (
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', fontWeight: 500 }}>
-                {subtitle}
-              </Typography>
-            )}
+              {icon}
+            </Box>
           </Box>
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: 3,
-              background: `linear-gradient(135deg, ${color === 'primary' ? '#667eea' : color === 'success' ? '#10b981' : color === 'warning' ? '#f59e0b' : '#ec4899'} 0%, ${color === 'primary' ? '#764ba2' : color === 'success' ? '#059669' : color === 'warning' ? '#d97706' : '#db2777'})`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              boxShadow: `0 8px 24px ${color === 'primary' ? 'rgba(102, 126, 234, 0.3)' : color === 'success' ? 'rgba(16, 185, 129, 0.3)' : color === 'warning' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(236, 72, 153, 0.3)'}`,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'rotate(10deg) scale(1.1)',
-              }
-            }}
-          >
-            {icon}
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
-  </Grow>
-)
+        </CardContent>
+      </Card>
+    </Grow>
+  )
+}
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const { t } = useTranslation()
+  const theme = useTheme()
+  const isDark = theme.palette.mode === 'dark'
   const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -137,13 +150,7 @@ const Dashboard = () => {
   }
 
   const getRoleText = (role) => {
-    const roles = {
-      student: 'Öğrenci',
-      faculty: 'Öğretim Üyesi',
-      admin: 'Yönetici',
-      staff: 'Personel'
-    }
-    return roles[role] || role
+    return t(`dashboard.roles.${role}`, role)
   }
 
   if (loading) {
@@ -178,7 +185,7 @@ const Dashboard = () => {
               </Box>
               <Box>
                 <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, color: 'text.primary' }}>
-                  Hoş Geldiniz, {profile?.firstName}! 👋
+                  {t('dashboard.welcome')} {profile?.firstName}! 👋
                 </Typography>
               </Box>
             </Box>
@@ -189,9 +196,9 @@ const Dashboard = () => {
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Profil Tamamlanma"
+              title={t('dashboard.profileCompletion', 'Profil Tamamlanma')}
               value="85%"
-              subtitle="Profil bilgilerinizi tamamlayın"
+              subtitle={t('dashboard.completeProfile', 'Profil bilgilerinizi tamamlayın')}
               icon={<PersonIcon sx={{ fontSize: 32 }} />}
               color="primary"
               delay={0}
@@ -199,9 +206,9 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Aktivite Durumu"
-              value={profile?.isEmailVerified ? "Aktif" : "Beklemede"}
-              subtitle={profile?.isEmailVerified ? "E-posta doğrulandı" : "E-posta doğrulanmadı"}
+              title={t('dashboard.activityStatus', 'Aktivite Durumu')}
+              value={profile?.isEmailVerified ? t('iot.active', "Aktif") : t('dashboard.pending', "Beklemede")}
+              subtitle={profile?.isEmailVerified ? t('dashboard.emailVerified', "E-posta doğrulandı") : t('dashboard.emailNotVerified', "E-posta doğrulanmadı")}
               icon={profile?.isEmailVerified ? <VerifiedUserIcon sx={{ fontSize: 32 }} /> : <EmailIcon sx={{ fontSize: 32 }} />}
               color={profile?.isEmailVerified ? "success" : "warning"}
               delay={100}
@@ -209,9 +216,9 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Rol"
+              title={t('dashboard.role', 'Rol')}
               value={getRoleText(profile?.role)}
-              subtitle="Sistem kullanıcısı"
+              subtitle={t('dashboard.systemUser', "Sistem kullanıcısı")}
               icon={<SchoolIcon sx={{ fontSize: 32 }} />}
               color="secondary"
               delay={200}
@@ -219,9 +226,9 @@ const Dashboard = () => {
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard
-              title="Platform Durumu"
+              title={t('dashboard.platformStatus', 'Platform Durumu')}
               value="Online"
-              subtitle="Tüm servisler çalışıyor"
+              subtitle={t('dashboard.allSystemsOperational', "Tüm servisler çalışıyor")}
               icon={<TrendingUpIcon sx={{ fontSize: 32 }} />}
               color="success"
               delay={300}
@@ -233,13 +240,14 @@ const Dashboard = () => {
           {/* Profile Card with enhanced design */}
           <Grid item xs={12} md={4}>
             <Grow in={true} timeout={800} style={{ transitionDelay: '400ms' }}>
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   height: '100%',
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(102, 126, 234, 0.1)',
+                  background: isDark ? 'background.paper' : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid',
+                  borderColor: isDark ? 'divider' : 'rgba(102, 126, 234, 0.1)',
                   position: 'relative',
                   overflow: 'hidden',
                   '&::before': {
@@ -301,7 +309,7 @@ const Dashboard = () => {
                     <Stack direction="row" spacing={1} sx={{ mb: 3, flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
                       <Chip
                         label={getRoleText(profile?.role)}
-                        sx={{ 
+                        sx={{
                           fontWeight: 700,
                           background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
                           color: 'white',
@@ -311,7 +319,7 @@ const Dashboard = () => {
                       {profile?.isEmailVerified ? (
                         <Chip
                           icon={<VerifiedUserIcon sx={{ fontSize: 16 }} />}
-                          label="Doğrulanmış"
+                          label={t('dashboard.verified', "Doğrulanmış")}
                           color="success"
                           size="small"
                           sx={{ fontWeight: 600 }}
@@ -319,7 +327,7 @@ const Dashboard = () => {
                       ) : (
                         <Chip
                           icon={<EmailIcon sx={{ fontSize: 16 }} />}
-                          label="Doğrulanmamış"
+                          label={t('dashboard.unverified', "Doğrulanmamış")}
                           color="warning"
                           size="small"
                           sx={{ fontWeight: 600 }}
@@ -329,7 +337,7 @@ const Dashboard = () => {
                     {profile?.studentProfile && (
                       <Box sx={{ width: '100%', mb: 2, p: 2, bgcolor: 'rgba(102, 126, 234, 0.05)', borderRadius: 2 }}>
                         <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-                          Öğrenci Numarası
+                          {t('dashboard.studentNumber', "Öğrenci Numarası")}
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
                           {profile.studentProfile.studentNumber}
@@ -338,7 +346,7 @@ const Dashboard = () => {
                           <>
                             <Divider sx={{ my: 1.5 }} />
                             <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Bölüm
+                              {t('dashboard.department', "Bölüm")}
                             </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 600 }}>
                               {profile.studentProfile.department.name}
@@ -350,7 +358,7 @@ const Dashboard = () => {
                     {profile?.facultyProfile && (
                       <Box sx={{ width: '100%', mb: 2, p: 2, bgcolor: 'rgba(236, 72, 153, 0.05)', borderRadius: 2 }}>
                         <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-                          Personel Numarası
+                          {t('dashboard.employeeNumber', "Personel Numarası")}
                         </Typography>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: 'secondary.main' }}>
                           {profile.facultyProfile.employeeNumber}
@@ -359,7 +367,7 @@ const Dashboard = () => {
                           <>
                             <Divider sx={{ my: 1.5 }} />
                             <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontWeight: 600 }}>
-                              Bölüm
+                              {t('dashboard.department', "Bölüm")}
                             </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 600 }}>
                               {profile.facultyProfile.department.name}
@@ -372,7 +380,7 @@ const Dashboard = () => {
                       variant="contained"
                       fullWidth
                       onClick={() => navigate('/profile')}
-                      sx={{ 
+                      sx={{
                         mt: 2,
                         py: 1.5,
                         background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
@@ -385,7 +393,7 @@ const Dashboard = () => {
                         transition: 'all 0.3s ease'
                       }}
                     >
-                      Profili Düzenle
+                      {t('dashboard.editProfile', "Profili Düzenle")}
                     </Button>
                   </Box>
                 </CardContent>
@@ -396,13 +404,14 @@ const Dashboard = () => {
           {/* Welcome & Info Card */}
           <Grid item xs={12} md={8}>
             <Grow in={true} timeout={800} style={{ transitionDelay: '500ms' }}>
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   mb: 3,
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(102, 126, 234, 0.1)',
+                  background: isDark ? 'background.paper' : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid',
+                  borderColor: isDark ? 'divider' : 'rgba(102, 126, 234, 0.1)',
                   position: 'relative',
                   overflow: 'hidden',
                   '&::before': {
@@ -421,14 +430,14 @@ const Dashboard = () => {
                   <Divider sx={{ mb: 3 }} />
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PsychologyIcon sx={{ color: 'primary.main' }} />
-                    Tamamlanan Özellikler (Part 1)
+                    {t('dashboard.completedFeatures', "Tamamlanan Özellikler")} (Part 1)
                   </Typography>
                   <Grid container spacing={2}>
                     {[
-                      { icon: <VerifiedUserIcon />, text: 'Kullanıcı Kayıt ve Giriş Sistemi', color: '#667eea' },
-                      { icon: <EmailIcon />, text: 'E-posta Doğrulama', color: '#ec4899' },
-                      { icon: <PersonIcon />, text: 'Profil Yönetimi ve Fotoğraf Yükleme', color: '#10b981' },
-                      { icon: <SchoolIcon />, text: 'Rol Tabanlı Erişim Kontrolü', color: '#f59e0b' }
+                      { icon: <VerifiedUserIcon />, text: t('dashboard.features.registration', 'Kullanıcı Kayıt ve Giriş Sistemi'), color: '#667eea' },
+                      { icon: <EmailIcon />, text: t('dashboard.features.emailVerification', 'E-posta Doğrulama'), color: '#ec4899' },
+                      { icon: <PersonIcon />, text: t('dashboard.features.profileManagement', 'Profil Yönetimi ve Fotoğraf Yükleme'), color: '#10b981' },
+                      { icon: <SchoolIcon />, text: t('dashboard.features.roleAccess', 'Rol Tabanlı Erişim Kontrolü'), color: '#f59e0b' }
                     ].map((feature, index) => (
                       <Grid item xs={12} sm={6} key={index}>
                         <Paper
@@ -478,16 +487,17 @@ const Dashboard = () => {
             <Grow in={true} timeout={800} style={{ transitionDelay: '600ms' }}>
               <Card
                 sx={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(102, 126, 234, 0.1)'
+                  background: isDark ? 'background.paper' : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid',
+                  borderColor: isDark ? 'divider' : 'rgba(102, 126, 234, 0.1)'
                 }}
               >
                 <CardContent>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AssignmentIcon sx={{ color: 'primary.main' }} />
-                    Hızlı İşlemler
+                    {t('dashboard.quickActions', "Hızlı İşlemler")}
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
@@ -517,10 +527,10 @@ const Dashboard = () => {
                           <PersonIcon sx={{ fontSize: 40, color: 'primary.main' }} />
                           <Box>
                             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                              Profil Düzenle
+                              {t('dashboard.editProfile', "Profili Düzenle")}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Bilgilerinizi güncelleyin
+                              {t('dashboard.updateInfo', "Bilgilerinizi güncelleyin")}
                             </Typography>
                           </Box>
                         </Box>
@@ -552,13 +562,14 @@ const Dashboard = () => {
                           <CalendarTodayIcon sx={{ fontSize: 40, color: 'secondary.main' }} />
                           <Box>
                             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                              Etkinlikler
+                              {t('dashboard.events', "Etkinlikler")}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Yakında eklenecek
+                              {t('dashboard.comingSoon', "Yakında eklenecek")}
                             </Typography>
                           </Box>
                         </Box>
+
                       </Paper>
                     </Grid>
                   </Grid>
@@ -568,7 +579,7 @@ const Dashboard = () => {
           </Grid>
         </Grid>
       </Box>
-    </Layout>
+    </Layout >
   )
 }
 

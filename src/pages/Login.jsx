@@ -34,7 +34,12 @@ import { useAuth } from '../context/AuthContext'
 import { toast } from 'react-toastify'
 import { loginSchema } from '../validation/authSchemas'
 
+import { useTheme } from '../context/ThemeContext'
+import { useTheme as useMuiTheme } from '@mui/material/styles'
+
 const Login = () => {
+  const { mode } = useTheme()
+  const muiTheme = useMuiTheme()
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
@@ -87,7 +92,9 @@ const Login = () => {
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%)',
+        background: mode === 'dark'
+          ? 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)'
+          : 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%)',
         backgroundSize: '200% 200%',
         animation: 'gradient 15s ease infinite',
         position: 'relative',
@@ -101,6 +108,7 @@ const Login = () => {
           right: 0,
           bottom: 0,
           background: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.12) 0%, transparent 50%)',
+          display: mode === 'dark' ? 'none' : 'block'
         }
       }}
     >
@@ -112,7 +120,7 @@ const Login = () => {
               boxShadow: '0 24px 80px rgba(0,0,0,0.4)',
               overflow: 'hidden',
               border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255, 255, 255, 0.98)',
+              background: mode === 'dark' ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
             }}
@@ -120,7 +128,9 @@ const Login = () => {
             {/* Header with animated gradient */}
             <Box
               sx={{
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%)',
+                background: mode === 'dark'
+                  ? 'linear-gradient(135deg, #0f172a 0%, #334155 100%)'
+                  : 'linear-gradient(135deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%)',
                 backgroundSize: '200% 200%',
                 animation: 'gradient 15s ease infinite',
                 p: 4,
@@ -193,10 +203,10 @@ const Login = () => {
                   </Box>
 
                   {error && (
-                    <Alert 
-                      severity="error" 
-                      sx={{ 
-                        mb: 3, 
+                    <Alert
+                      severity="error"
+                      sx={{
+                        mb: 3,
                         borderRadius: 2,
                         boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)',
                         animation: 'fadeIn 0.5s ease'
@@ -216,7 +226,7 @@ const Login = () => {
                       {...register('email')}
                       error={!!errors.email}
                       helperText={errors.email?.message}
-                      sx={{ 
+                      sx={{
                         mb: 2.5,
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 2,
@@ -247,7 +257,7 @@ const Login = () => {
                       {...register('password')}
                       error={!!errors.password}
                       helperText={errors.password?.message}
-                      sx={{ 
+                      sx={{
                         mb: 3,
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 2,
@@ -273,7 +283,7 @@ const Login = () => {
                               aria-label="toggle password visibility"
                               onClick={() => setShowPassword(!showPassword)}
                               edge="end"
-                              sx={{ 
+                              sx={{
                                 color: 'primary.main',
                                 '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.08)' }
                               }}
@@ -346,7 +356,7 @@ const Login = () => {
                             fontWeight: 600,
                             transition: 'all 0.3s ease',
                             display: 'inline-block',
-                            '&:hover': { 
+                            '&:hover': {
                               textDecoration: 'underline',
                               transform: 'translateX(4px)'
                             }
@@ -363,20 +373,20 @@ const Login = () => {
                       <Link to="/register" style={{ textDecoration: 'none' }}>
                         <Typography
                           variant="body2"
-                      component="span"
-                      sx={{
-                        color: 'primary.main',
-                        fontWeight: 700,
-                        background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        transition: 'all 0.3s ease',
-                        display: 'inline-block',
-                        '&:hover': { 
-                          transform: 'translateX(4px)',
-                          filter: 'brightness(1.2)'
-                        }
-                      }}
+                          component="span"
+                          sx={{
+                            color: 'primary.main',
+                            fontWeight: 700,
+                            background: 'linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            transition: 'all 0.3s ease',
+                            display: 'inline-block',
+                            '&:hover': {
+                              transform: 'translateX(4px)',
+                              filter: 'brightness(1.2)'
+                            }
+                          }}
                         >
                           Kayıt Olun ✨
                         </Typography>
