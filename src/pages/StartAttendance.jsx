@@ -31,6 +31,11 @@ import Layout from '../components/Layout'
 import QRCodeDisplay from '../components/QRCodeDisplay'
 import { toast } from 'react-toastify'
 
+import {
+  LocationOn as LocationOnIcon,
+  CheckCircle as CheckCircleIcon
+} from '@mui/icons-material'
+
 const StartAttendance = () => {
   const { user } = useAuth()
   const [sections, setSections] = useState([])
@@ -43,6 +48,7 @@ const StartAttendance = () => {
   const [creating, setCreating] = useState(false)
   const [activeSession, setActiveSession] = useState(null)
   const [qrDialog, setQrDialog] = useState(false)
+  const [customLocation, setCustomLocation] = useState(null)
 
   useEffect(() => {
     if (user?.role === 'faculty' || user?.role === 'admin') {
@@ -84,7 +90,11 @@ const StartAttendance = () => {
         date,
         startTime,
         endTime,
-        geofenceRadius
+        geofenceRadius,
+        ...(customLocation && {
+          latitude: customLocation.latitude,
+          longitude: customLocation.longitude
+        })
       })
       setActiveSession(response.data.data)
       toast.success('Yoklama oturumu başarıyla başlatıldı!')
@@ -195,6 +205,66 @@ const StartAttendance = () => {
                   onChange={(e) => setEndTime(e.target.value)}
                   InputLabelProps={{ shrink: true }}
                 />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
+                  Oturum Konumu
+                </Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  Varsayılan olarak sınıfın kayıtlı konumu kullanılır. İsterseniz şu anki konumunuzu kullanabilirsiniz.
+                </Typography>
+
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<LocationOnIcon />}
+                    onClick={() => {
+                      if (!navigator.geolocation) {
+                        toast.error('Tarayıcınız konum servisini desteklemiyor');
+                        return;
+                      }
+                      setLoading(true);
+                      navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                          setCustomLocation({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                          });
+                          toast.success('Konumunuz alındı');
+                          setLoading(false);
+                        },
+                        (error) => {
+                          console.error(error);
+                          toast.error('Konum alınamadı: ' + error.message);
+                          setLoading(false);
+                        }
+                      );
+                    }}
+                  >
+                    Şu Anki Konumumu Kullan
+                  </Button>
+
+                  {customLocation && (
+                    <Button
+                      color="error"
+                      sx={{ ml: 2 }}
+                      onClick={() => setCustomLocation(null)}
+                    >
+                      Sınıf Konumuna Dön
+                    </Button>
+                  )}
+                </Box>
+
+                {customLocation ? (
+                  <Alert severity="success" icon={<CheckCircleIcon />}>
+                    Oturum şu anki konumunuzda başlatılacak: {customLocation.latitude.toFixed(6)}, {customLocation.longitude.toFixed(6)}
+                  </Alert>
+                ) : (
+                  <Alert severity="info">
+                    Oturum sınıfın kayıtlı konumunda başlatılacak.
+                  </Alert>
+                )}
               </Grid>
 
               <Grid item xs={12}>

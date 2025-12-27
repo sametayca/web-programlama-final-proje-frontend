@@ -70,12 +70,26 @@ const GiveAttendance = () => {
         setLocationError(null)
       },
       (error) => {
-        setLocationError('Konumunuz alınamadı. Lütfen konum servislerini etkinleştirin.')
+        let errorMessage;
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Konum izni reddedildi. Lütfen tarayıcı ayarlarından izin verin.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Konum bilgisi alınamıyor. GPS'in açık olduğundan emin olun.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Konum alma süresi doldu. Tekrar deneyin.";
+            break;
+          default:
+            errorMessage = "Bilinmeyen bir hata oluştu.";
+        }
+        setLocationError(errorMessage)
         console.error('Geolocation error:', error)
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0
       }
     )
@@ -88,8 +102,8 @@ const GiveAttendance = () => {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return R * c
   }
@@ -168,7 +182,8 @@ const GiveAttendance = () => {
     )
   }
 
-  const isWithinRange = distance !== null && distance <= (parseFloat(session.geofenceRadius) + 5)
+  // Determine effective radius - user requested max 15m (or whatever is set in session)
+  const isWithinRange = distance !== null && distance <= parseFloat(session.geofenceRadius)
 
   return (
     <Layout>
@@ -210,6 +225,8 @@ const GiveAttendance = () => {
                     longitude: parseFloat(session.longitude)
                   }}
                   userLocation={location}
+                  // If we have user location, center map there to show them where they are relative to target
+                  center={location ? { lat: location.latitude, lng: location.longitude } : null}
                   geofenceRadius={parseFloat(session.geofenceRadius)}
                   height="300px"
                 />
@@ -304,10 +321,10 @@ const GiveAttendance = () => {
               size="large"
               startIcon={checkingIn ? <CircularProgress size={20} color="inherit" /> : <CheckCircleIcon />}
               onClick={handleCheckIn}
-              disabled={checkingIn || !location || session.status !== 'active'}
+              disabled={checkingIn || !location || session.status !== 'active' || !isWithinRange}
               sx={{ py: 2 }}
             >
-              {checkingIn ? 'Yoklama veriliyor...' : 'Yoklama Ver'}
+              {checkingIn ? 'Yoklama veriliyor...' : (!isWithinRange && distance !== null) ? 'Mesafe Sınırı Dışındasınız' : 'Yoklama Ver'}
             </Button>
             {session.status !== 'active' && (
               <Alert severity="warning" sx={{ mt: 2 }}>
