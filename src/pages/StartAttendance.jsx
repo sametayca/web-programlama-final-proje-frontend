@@ -57,9 +57,9 @@ const StartAttendance = () => {
       const currentYear = new Date().getFullYear()
       const currentMonth = new Date().getMonth()
       const semester = currentMonth >= 0 && currentMonth < 6 ? 'spring' : 'fall'
-      
+
       // Fetch sections for current semester/year (faculty's department courses)
-      const response = await sectionService.getSections({ 
+      const response = await sectionService.getSections({
         semester,
         year: currentYear
       })
@@ -219,7 +219,7 @@ const StartAttendance = () => {
             {activeSession && (
               <Box sx={{ textAlign: 'center', py: 2 }}>
                 <QRCodeDisplay
-                  value={activeSession.qrCode}
+                  value={`${window.location.origin}/attendance/give/${activeSession.id}`}
                   size={256}
                   title="Yoklama QR Kodu"
                 />

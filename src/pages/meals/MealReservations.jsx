@@ -102,7 +102,7 @@ const MealReservations = () => {
       const today = new Date()
       menuDate.setHours(0, 0, 0, 0)
       today.setHours(0, 0, 0, 0)
-      
+
       if (menuDate.getTime() === today.getTime()) {
         return 'Aynı gün rezervasyon iptal edilemez'
       }
@@ -114,11 +114,11 @@ const MealReservations = () => {
   const filterReservations = () => {
     const now = new Date()
     now.setHours(0, 0, 0, 0)
-    
+
     return reservations.filter(res => {
       const menuDate = new Date(res.menu?.menuDate || res.menu?.date)
       menuDate.setHours(0, 0, 0, 0)
-      
+
       if (tabValue === 0) {
         // Upcoming: gelecek veya bugün olan + henüz kullanılmamış ve iptal edilmemiş
         return menuDate >= now && res.status !== 'used' && res.status !== 'cancelled'
@@ -136,7 +136,7 @@ const MealReservations = () => {
   const renderReservationCard = (reservation) => {
     const mealType = getMealTypeLabel(reservation.menu?.mealType)
     const canCancelThis = canCancel(reservation)
-    
+
     return (
       <Grid item xs={12} md={6} key={reservation.id}>
         <Card elevation={3}>
@@ -199,7 +199,7 @@ const MealReservations = () => {
                 </Button>
                 <Tooltip title={getCancelTooltip(reservation)}>
                   <span>
-                    <IconButton 
+                    <IconButton
                       color="error"
                       onClick={() => handleCancel(reservation)}
                       disabled={!canCancelThis || cancelling === reservation.id}
@@ -261,8 +261,8 @@ const MealReservations = () => {
                 {tabValue === 0 ? 'Gelecek rezervasyon bulunmamaktadır' : 'Geçmiş rezervasyon bulunmamaktadır'}
               </Typography>
               {tabValue === 0 && (
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   sx={{ mt: 2 }}
                   onClick={() => window.location.href = '/meals/menu'}
                 >
@@ -278,8 +278,8 @@ const MealReservations = () => {
         )}
 
         {/* Full Screen QR Code Dialog */}
-        <Dialog 
-          open={Boolean(selectedQR)} 
+        <Dialog
+          open={Boolean(selectedQR)}
           onClose={() => setSelectedQR(null)}
           maxWidth="md"
           fullWidth
@@ -291,12 +291,12 @@ const MealReservations = () => {
             <Box textAlign="center">
               {selectedQR && (
                 <>
-                  <Chip 
+                  <Chip
                     label={getMealTypeLabel(selectedQR.menu.mealType).label}
                     color={getMealTypeLabel(selectedQR.menu.mealType).color}
                     sx={{ mb: 2 }}
                   />
-                  
+
                   <Typography variant="h5" gutterBottom fontWeight="bold">
                     {new Date(selectedQR.menu?.menuDate || selectedQR.menu?.date || selectedQR.reservationDate).toLocaleDateString('tr-TR', {
                       weekday: 'long',
@@ -304,25 +304,25 @@ const MealReservations = () => {
                       month: 'long'
                     })}
                   </Typography>
-                  
+
                   <Typography variant="body1" color="text.secondary" gutterBottom>
                     {selectedQR.menu?.cafeteria?.openingTime || '08:00'} - {selectedQR.menu?.cafeteria?.closingTime || '20:00'}
                   </Typography>
-                  
+
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     📍 {selectedQR.menu?.cafeteria?.name || selectedQR.menu?.cafeteria?.location}
                   </Typography>
-                  
+
                   {selectedQR.menu?.mainCourse && (
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                       🍽️ {selectedQR.menu.mainCourse}
                     </Typography>
                   )}
-                  
-                  <Box 
-                    sx={{ 
-                      p: 4, 
-                      bgcolor: 'white', 
+
+                  <Box
+                    sx={{
+                      p: 4,
+                      bgcolor: 'white',
                       borderRadius: 3,
                       mt: 3,
                       mb: 3,
@@ -330,26 +330,26 @@ const MealReservations = () => {
                       boxShadow: 3
                     }}
                   >
-                    <QRCodeSVG 
-                      value={selectedQR.qrCode} 
+                    <QRCodeSVG
+                      value={`${window.location.origin}/meals/scan?code=${selectedQR.qrCode}`}
                       size={320}
                       level="H"
                       includeMargin={true}
                     />
                   </Box>
-                  
+
                   <Alert severity="info" icon={<Restaurant />}>
                     <Typography variant="body2" fontWeight="bold">
                       Bu QR kodu kafeterya personeline gösterin
                     </Typography>
                   </Alert>
-                  
+
                   {selectedQR.amountPaid > 0 && (
                     <Alert severity="info" sx={{ mt: 2 }}>
                       Ödenen: {parseFloat(selectedQR.amountPaid).toFixed(2)} TL (Rezervasyon sırasında düşüldü)
                     </Alert>
                   )}
-                  
+
                   {selectedQR.isScholarshipMeal && (
                     <Alert severity="success" sx={{ mt: 2 }}>
                       🎓 Burslu öğrenci - Ücretsiz

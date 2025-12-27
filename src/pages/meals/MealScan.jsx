@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Container,
   Box,
@@ -20,9 +20,9 @@ import { toast } from 'react-toastify'
 import Layout from '../../components/Layout'
 import QRScanner from '../../components/QRScanner'
 import mealService from '../../services/mealService'
-import { 
-  CheckCircle, 
-  Restaurant, 
+import {
+  CheckCircle,
+  Restaurant,
   ErrorOutline,
   QrCode,
   TextFields,
@@ -38,9 +38,22 @@ const MealScan = () => {
   const [confirming, setConfirming] = useState(false)
   const [scanning, setScanning] = useState(true)
 
+  // Add useSearchParams hook
+  const { useSearchParams } = require('react-router-dom')
+  const [searchParams] = useSearchParams()
+
   const handleScan = async (qrCode) => {
     await validateQR(qrCode)
   }
+
+  // Effect to auto-validate if opened via QR link
+  useEffect(() => {
+    const codeParam = searchParams.get('code');
+    if (codeParam && !validationData && !scanResult && scanning) {
+      setManualQR(codeParam)
+      validateQR(codeParam)
+    }
+  }, [searchParams])
 
   const handleManualValidate = async () => {
     if (!manualQR.trim()) {
@@ -55,14 +68,14 @@ const MealScan = () => {
       setValidating(true)
       setScanResult(null)
       setScanning(false)
-      
+
       const response = await mealService.validateReservation(qrCode)
-      
+
       setValidationData({
         ...response.data.data,
         qrCode
       })
-      
+
       toast.success('Rezervasyon geçerli!')
     } catch (err) {
       setScanResult({
@@ -70,7 +83,7 @@ const MealScan = () => {
         error: err.response?.data?.error || 'Geçersiz QR kod'
       })
       toast.error(err.response?.data?.error || 'Geçersiz QR kod')
-      
+
       // Reset after 3 seconds
       setTimeout(() => {
         setScanResult(null)
@@ -88,19 +101,19 @@ const MealScan = () => {
 
     try {
       setConfirming(true)
-      
+
       const response = await mealService.useReservation(
         validationData.reservationId,
         { qrCode: validationData.qrCode }
       )
-      
+
       setScanResult({
         success: true,
         data: response.data.data
       })
-      
+
       toast.success('Yemek başarıyla kullanıldı!')
-      
+
       // Reset after 5 seconds
       setTimeout(() => {
         setScanResult(null)
@@ -110,7 +123,7 @@ const MealScan = () => {
       }, 5000)
     } catch (err) {
       toast.error(err.response?.data?.error || 'İşlem başarısız')
-      
+
       // Reset validation data but show error
       setTimeout(() => {
         setValidationData(null)
@@ -159,8 +172,8 @@ const MealScan = () => {
                 Öğün
               </Typography>
               <Typography variant="h6" fontWeight="bold">
-                {validationData.mealType === 'lunch' ? 'Öğle Yemeği' : 
-                 validationData.mealType === 'dinner' ? 'Akşam Yemeği' : 'Kahvaltı'}
+                {validationData.mealType === 'lunch' ? 'Öğle Yemeği' :
+                  validationData.mealType === 'dinner' ? 'Akşam Yemeği' : 'Kahvaltı'}
               </Typography>
               <Typography variant="body2">
                 {new Date(validationData.mealDate).toLocaleDateString('tr-TR')}
@@ -184,8 +197,8 @@ const MealScan = () => {
             size="large"
             onClick={handleConfirmUse}
             disabled={confirming}
-            sx={{ 
-              mt: 3, 
+            sx={{
+              mt: 3,
               bgcolor: 'white',
               color: 'info.main',
               '&:hover': { bgcolor: 'grey.100' }
@@ -202,9 +215,9 @@ const MealScan = () => {
     if (!scanResult) return null
 
     return (
-      <Card 
+      <Card
         elevation={4}
-        sx={{ 
+        sx={{
           bgcolor: scanResult.success ? 'success.light' : 'error.light',
           color: 'white',
           mb: 3
@@ -235,14 +248,14 @@ const MealScan = () => {
                   <Typography variant="body2">
                     No: {scanResult.data.studentNumber}
                   </Typography>
-                  
+
                   <Box mt={2}>
-                    <Chip 
+                    <Chip
                       label={scanResult.data.mealType === 'lunch' ? 'Öğle' : 'Akşam'}
                       sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', mr: 1 }}
                     />
                     {scanResult.data.price > 0 && (
-                      <Chip 
+                      <Chip
                         label={`${scanResult.data.price} TL düşüldü`}
                         sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white' }}
                       />
@@ -279,8 +292,8 @@ const MealScan = () => {
 
         {/* Mode Tabs */}
         <Paper elevation={2} sx={{ mb: 3 }}>
-          <Tabs 
-            value={scanMode} 
+          <Tabs
+            value={scanMode}
             onChange={(e, newValue) => {
               setScanMode(newValue)
               setValidationData(null)
