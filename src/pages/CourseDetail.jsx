@@ -42,6 +42,7 @@ const CourseDetail = () => {
   const [enrolling, setEnrolling] = useState(false)
   const [enrollDialog, setEnrollDialog] = useState(false)
   const [selectedSection, setSelectedSection] = useState(null)
+  const [enrollError, setEnrollError] = useState(null)
 
   useEffect(() => {
     fetchCourse()
@@ -67,18 +68,23 @@ const CourseDetail = () => {
     }
 
     setSelectedSection(section)
+    setEnrollError(null) // Clear previous errors
     setEnrollDialog(true)
   }
 
   const confirmEnroll = async () => {
     setEnrolling(true)
+    setEnrollError(null)
     try {
       await enrollmentService.enroll(selectedSection.id)
       toast.success('Derse başarıyla kayıt olundu!')
       setEnrollDialog(false)
+      setEnrollError(null)
       fetchCourse()
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Derse kayıt olunamadı')
+      const errorMessage = err.response?.data?.error || 'Derse kayıt olunamadı'
+      setEnrollError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setEnrolling(false)
     }
@@ -123,6 +129,12 @@ const CourseDetail = () => {
         >
           Kataloğa Dön
         </Button>
+
+        {enrollError && !enrollDialog && (
+          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setEnrollError(null)}>
+            {enrollError}
+          </Alert>
+        )}
 
         <Card sx={{ mb: 3 }}>
           <CardContent>
@@ -252,25 +264,31 @@ const CourseDetail = () => {
           </CardContent>
         </Card>
 
-        <Dialog open={enrollDialog} onClose={() => setEnrollDialog(false)}>
+        <Dialog open={enrollDialog} onClose={() => { setEnrollDialog(false); setEnrollError(null); }} maxWidth="sm" fullWidth>
           <DialogTitle>Kayıt Onayı</DialogTitle>
           <DialogContent>
+            {enrollError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {enrollError}
+              </Alert>
+            )}
             <Typography>
               <strong>Bölüm {selectedSection?.sectionNumber}</strong> dersine kayıt olmak istediğinizden emin misiniz?
             </Typography>
             {selectedSection && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  Öğretim Üyesi: {selectedSection.instructor?.firstName} {selectedSection.instructor?.lastName}
+                  Öğretim Üyesi: {selectedSection.instructor?.firstName || 'TBA'} {selectedSection.instructor?.lastName || ''}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Program: {Array.isArray(selectedSection.scheduleJson?.days) && selectedSection.scheduleJson.days.join(', ')}
+                  Program: {Array.isArray(selectedSection.scheduleJson?.days) ? selectedSection.scheduleJson.days.join(', ') : 'Belirtilmemiş'}
+                  {selectedSection.scheduleJson?.startTime && ` • ${selectedSection.scheduleJson.startTime} - ${selectedSection.scheduleJson.endTime}`}
                 </Typography>
               </Box>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEnrollDialog(false)}>İptal</Button>
+            <Button onClick={() => { setEnrollDialog(false); setEnrollError(null); }}>İptal</Button>
             <Button
               variant="contained"
               onClick={confirmEnroll}

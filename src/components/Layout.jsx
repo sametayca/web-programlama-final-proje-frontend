@@ -55,6 +55,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '../context/ThemeContext'
+import NotificationBell from './NotificationBell'
 
 const drawerWidth = 280
 
@@ -366,14 +367,8 @@ const Layout = ({ children }) => {
             </Menu>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-              <Badge badgeContent={3} color="error">
-                <IconButton sx={{
-                  bgcolor: 'rgba(102, 126, 234, 0.1)',
-                  '&:hover': { bgcolor: 'rgba(102, 126, 234, 0.2)' }
-                }}>
-                  <NotificationsIcon />
-                </IconButton>
-              </Badge>
+              {/* Dynamic Notification Bell with unread count */}
+              <NotificationBell />
               {user?.isEmailVerified ? (
                 <Chip
                   icon={<VerifiedUserIcon sx={{ fontSize: 18 }} />}

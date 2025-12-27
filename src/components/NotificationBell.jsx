@@ -48,10 +48,15 @@ const NotificationBell = () => {
     const fetchNotifications = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await notificationService.getNotifications({ limit: 5 });
-            if (response.success) {
-                setNotifications(response.data.notifications);
-                setUnreadCount(response.data.unreadCount);
+            const [notificationsResponse, unreadCountResponse] = await Promise.all([
+                notificationService.getNotifications({ limit: 5 }),
+                notificationService.getUnreadCount()
+            ]);
+            if (notificationsResponse.success) {
+                setNotifications(notificationsResponse.data.notifications);
+            }
+            if (unreadCountResponse.success) {
+                setUnreadCount(unreadCountResponse.data.unreadCount);
             }
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
@@ -67,9 +72,20 @@ const NotificationBell = () => {
         const token = localStorage.getItem('token');
         if (token) {
             socketService.connect(token);
-            socketService.onNotification((notification) => {
+            socketService.onNotification(async (notification) => {
                 setNotifications(prev => [notification, ...prev.slice(0, 4)]);
-                setUnreadCount(prev => prev + 1);
+                // Fetch updated unread count from server
+                try {
+                    const unreadCountResponse = await notificationService.getUnreadCount();
+                    if (unreadCountResponse.success) {
+                        setUnreadCount(unreadCountResponse.data.unreadCount);
+                    } else {
+                        setUnreadCount(prev => prev + 1);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch unread count:', error);
+                    setUnreadCount(prev => prev + 1);
+                }
             });
         }
 
@@ -94,7 +110,18 @@ const NotificationBell = () => {
                 setNotifications(prev =>
                     prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
                 );
-                setUnreadCount(prev => Math.max(0, prev - 1));
+                // Fetch updated unread count from server
+                try {
+                    const unreadCountResponse = await notificationService.getUnreadCount();
+                    if (unreadCountResponse.success) {
+                        setUnreadCount(unreadCountResponse.data.unreadCount);
+                    } else {
+                        setUnreadCount(prev => Math.max(0, prev - 1));
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch unread count:', error);
+                    setUnreadCount(prev => Math.max(0, prev - 1));
+                }
             } catch (error) {
                 console.error('Failed to mark as read:', error);
             }
@@ -115,7 +142,18 @@ const NotificationBell = () => {
         try {
             await notificationService.markAllAsRead();
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-            setUnreadCount(0);
+            // Fetch updated unread count from server
+            try {
+                const unreadCountResponse = await notificationService.getUnreadCount();
+                if (unreadCountResponse.success) {
+                    setUnreadCount(unreadCountResponse.data.unreadCount);
+                } else {
+                    setUnreadCount(0);
+                }
+            } catch (error) {
+                console.error('Failed to fetch unread count:', error);
+                setUnreadCount(0);
+            }
         } catch (error) {
             console.error('Failed to mark all as read:', error);
         }
