@@ -224,22 +224,36 @@ const StartAttendance = () => {
                         toast.error('Tarayıcınız konum servisini desteklemiyor');
                         return;
                       }
-                      setLoading(true);
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          setCustomLocation({
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude
-                          });
-                          toast.success('Konumunuz alındı');
-                          setLoading(false);
-                        },
-                        (error) => {
-                          console.error(error);
-                          toast.error('Konum alınamadı: ' + error.message);
-                          setLoading(false);
-                        }
-                      );
+
+                      const getLocation = (highAccuracy) => {
+                        setLoading(true);
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            setCustomLocation({
+                              latitude: position.coords.latitude,
+                              longitude: position.coords.longitude
+                            });
+                            toast.success('Konumunuz alındı');
+                            setLoading(false);
+                          },
+                          (error) => {
+                            if (highAccuracy && (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE)) {
+                              // Retry with low accuracy
+                              getLocation(false);
+                              return;
+                            }
+                            console.error(error);
+                            let msg = 'Konum alınamadı';
+                            if (error.code === error.PERMISSION_DENIED) msg = 'Konum izni reddedildi. Tarayıcı ayarlarından izin verin.';
+                            if (error.code === error.TIMEOUT) msg = 'Zaman aşımı. Tekrar deneyin.';
+                            toast.error(msg);
+                            setLoading(false);
+                          },
+                          { enableHighAccuracy: highAccuracy, timeout: 10000 }
+                        );
+                      };
+
+                      getLocation(true);
                     }}
                   >
                     Şu Anki Konumumu Kullan

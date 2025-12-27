@@ -54,10 +54,19 @@ const GiveAttendance = () => {
     }
   }
 
-  const requestLocation = () => {
+  const requestLocation = (highAccuracy = true) => {
     if (!navigator.geolocation) {
       setLocationError('Tarayıcınız konum servislerini desteklemiyor')
       return
+    }
+
+    setLoading(true)
+    setLocationError(null)
+
+    const options = {
+      enableHighAccuracy: highAccuracy,
+      timeout: 10000,
+      maximumAge: 0
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -68,30 +77,35 @@ const GiveAttendance = () => {
           accuracy: position.coords.accuracy
         })
         setLocationError(null)
+        setLoading(false)
       },
       (error) => {
+        // If high accuracy failed, try low accuracy
+        if (highAccuracy && (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE)) {
+          console.log('High accuracy failed, trying low accuracy...')
+          requestLocation(false)
+          return
+        }
+
         let errorMessage;
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Konum izni reddedildi. Lütfen tarayıcı ayarlarından izin verin.";
+            errorMessage = "Konum izni reddedildi. Lütfen tarayıcı ayarlarından (Kilit simgesi) siteye konum izni verin.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = "Konum bilgisi alınamıyor. GPS'in açık olduğundan emin olun.";
             break;
           case error.TIMEOUT:
-            errorMessage = "Konum alma süresi doldu. Tekrar deneyin.";
+            errorMessage = "Konum alma süresi doldu. Açık havaya çıkıp tekrar deneyin.";
             break;
           default:
             errorMessage = "Bilinmeyen bir hata oluştu.";
         }
         setLocationError(errorMessage)
         console.error('Geolocation error:', error)
+        setLoading(false)
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
-      }
+      options
     )
   }
 
