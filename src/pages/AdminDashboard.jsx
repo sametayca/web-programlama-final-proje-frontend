@@ -219,9 +219,15 @@ const AdminDashboard = () => {
     const fetchContent = async () => {
         try {
             const annRes = await announcementService.getAnnouncements({ limit: 10 })
-            const evtRes = await eventService.getEvents({ limit: 20 }) // Increased limit
-            if (annRes.data.success) setAnnouncements(annRes.data.data.announcements || [])
-            if (evtRes.data.success) setEvents(evtRes.data.data.events || [])
+            const evtRes = await eventService.getEvents({ limit: 100 }) // Higher limit to get all events
+            
+            if (annRes.data.success) setAnnouncements(annRes.data.data.announcements || annRes.data.data || [])
+            if (evtRes.data.success) {
+                // API returns data as array directly (not data.events)
+                const eventsArray = evtRes.data.data.events || evtRes.data.data || []
+                console.log('Admin Dashboard Events:', eventsArray.length, eventsArray)
+                setEvents(eventsArray)
+            }
         } catch (err) { console.error('Content Error:', err) }
     }
 
@@ -283,13 +289,24 @@ const AdminDashboard = () => {
 
     const handleCreateEvent = async () => {
         try {
-            // For academic events, ensure a dummy capacity if not provided
             const eventData = { ...newEvent };
+            
+            // For academic events, set required defaults
             if (activeTab === 4) {
-                eventData.capacity = 5000; // Unlimited/High for academic events
+                eventData.capacity = 10000; // Unlimited for academic events
+                eventData.priority = eventData.priority || 'high';
+                eventData.location = eventData.location || 'Tüm Kampüs';
             }
+            
+            // Validate required fields
+            if (!eventData.title || !eventData.startDate || !eventData.endDate || !eventData.location) {
+                toast.error('Lütfen tüm zorunlu alanları doldurun (Başlık, Tarihler, Konum)')
+                return
+            }
+            
+            console.log('Creating event:', eventData)
             await eventService.createEvent(eventData)
-            toast.success('Etkinlik oluşturuldu')
+            toast.success(activeTab === 4 ? 'Akademik takvim öğesi eklendi' : 'Etkinlik oluşturuldu')
             setOpenEventDialog(false)
             fetchContent()
             // Reset form
@@ -298,7 +315,7 @@ const AdminDashboard = () => {
                 startDate: '', endDate: '', location: '', priority: 'normal', capacity: 100
             })
         } catch (err) {
-            console.error(err)
+            console.error('Event creation error:', err)
             toast.error('Oluşturma başarısız: ' + (err.response?.data?.error || err.message))
         }
     }
@@ -429,10 +446,14 @@ const AdminDashboard = () => {
                 <TabPanel value={activeTab} index={3}>
                     <Grid container spacing={4}>
                         <Grid item xs={12}>
+                            <Alert severity="info" sx={{ mb: 2 }}>
+                                Bu bölümde seminer, konferans, sosyal etkinlik gibi <strong>katılım gerektiren</strong> etkinlikleri yönetebilirsiniz.
+                                Akademik takvim öğeleri (dönem başlangıcı, sınavlar, tatiller) için "Akademik Takvim" sekmesini kullanın.
+                            </Alert>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h6">Etkinlik Yönetimi (Sosyal, Seminer vb.)</Typography>
+                                <Typography variant="h6">Etkinlik Yönetimi 🎉</Typography>
                                 <Button startIcon={<AddIcon />} variant="contained" onClick={() => {
-                                    setNewEvent({ ...newEvent, eventType: 'social', title: '', capacity: 100 }); // Reset to default social type
+                                    setNewEvent({ ...newEvent, eventType: 'social', title: '', capacity: 100, priority: 'normal' }); // Reset to default social type
                                     setOpenEventDialog(true);
                                 }}>Yeni Etkinlik Ekle</Button>
                             </Box>
@@ -655,7 +676,7 @@ const AdminDashboard = () => {
                             )}
                         </FormControl>
 
-                        {/* Capacity - Only for non-academic events or default for academic */}
+                        {/* Capacity - Only for non-academic events */}
                         {activeTab !== 4 && (
                             <TextField
                                 label="Kapasite (Kişi Sayısı)"
@@ -667,16 +688,15 @@ const AdminDashboard = () => {
                             />
                         )}
 
-                        {activeTab !== 4 && (
-                            <FormControl fullWidth>
-                                <InputLabel>Öncelik</InputLabel>
-                                <Select value={newEvent.priority} label="Öncelik" onChange={(e) => setNewEvent({ ...newEvent, priority: e.target.value })}>
-                                    <MenuItem value="normal">Normal</MenuItem>
-                                    <MenuItem value="high">Yüksek</MenuItem>
-                                    <MenuItem value="urgent">Acil</MenuItem>
-                                </Select>
-                            </FormControl>
-                        )}
+                        {/* Priority - For all events */}
+                        <FormControl fullWidth>
+                            <InputLabel>Öncelik</InputLabel>
+                            <Select value={newEvent.priority || 'normal'} label="Öncelik" onChange={(e) => setNewEvent({ ...newEvent, priority: e.target.value })}>
+                                <MenuItem value="normal">Normal</MenuItem>
+                                <MenuItem value="high">Yüksek</MenuItem>
+                                <MenuItem value="urgent">Acil</MenuItem>
+                            </Select>
+                        </FormControl>
 
                         <TextField
                             label="Başlangıç Tarihi"

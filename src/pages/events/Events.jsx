@@ -73,8 +73,20 @@ const Events = () => {
         params.startDate = filters.startDate.toISOString().split('T')[0]
       }
 
+      // Add higher limit to get all events including social ones
+      params.limit = 100
+      
       const response = await eventService.listEvents(params)
-      setEvents(response.data.data || [])
+      console.log('Events API Response:', response.data)
+      const allEvents = response.data.data || []
+      console.log('All Events:', allEvents.length, allEvents)
+      
+      // Filter out academic calendar events (they should only appear in Academic Calendar page)
+      const academicTypes = ['academic', 'exam', 'holiday', 'registration', 'ceremony']
+      const filteredEvents = allEvents.filter(evt => !academicTypes.includes(evt.eventType))
+      console.log('Filtered Events (non-academic):', filteredEvents.length, filteredEvents)
+      
+      setEvents(filteredEvents)
     } catch (err) {
       setError(err.response?.data?.error || 'Etkinlikler yüklenemedi')
     } finally {

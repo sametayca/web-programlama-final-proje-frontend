@@ -45,10 +45,13 @@ const AcademicCalendar = () => {
     try {
       // Fetch all events. In production, we might want to filter by type='academic,exam,...'
       // For now, checking all events and we will filter in UI or backend if needed.
-      const response = await import('../services/api').then(module => module.eventService.getEvents({ limit: 200 }))
+      const response = await import('../services/api').then(module => module.eventService.getEvents({ limit: 100 }))
+      console.log('Academic Calendar API Response:', response.data)
       if (response.data.success) {
+        // API returns data as array directly (not data.events)
+        const eventsArray = response.data.data.events || response.data.data || []
         // Map backend eventType to frontend categories if needed
-        const fetchedEvents = response.data.data.events
+        const fetchedEvents = eventsArray
           .filter(evt => ['academic', 'exam', 'holiday', 'registration', 'ceremony'].includes(evt.eventType)) // Only show academic events
           .map(evt => ({
             id: evt.id,
@@ -59,6 +62,7 @@ const AcademicCalendar = () => {
             description: evt.description,
             category: mapTypeToCategory(evt.eventType)
           }))
+        console.log('Filtered Academic Events:', fetchedEvents.length)
         setAcademicEvents(fetchedEvents)
       }
     } catch (error) {
@@ -266,9 +270,10 @@ const AcademicCalendar = () => {
                               </Avatar>
                             </ListItemIcon>
                             <ListItemText
+                              disableTypography
                               primary={
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-                                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                  <Typography variant="h6" component="span" sx={{ fontWeight: 700 }}>
                                     {event.title}
                                   </Typography>
                                   <Chip
@@ -286,14 +291,14 @@ const AcademicCalendar = () => {
                                 </Box>
                               }
                               secondary={
-                                <Box>
+                                <Box component="div">
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                                     <ScheduleIcon fontSize="small" color="action" />
-                                    <Typography variant="body2" color="text.secondary">
+                                    <Typography variant="body2" component="span" color="text.secondary">
                                       {formatDate(event.date)}
                                     </Typography>
                                   </Box>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography variant="body2" component="span" color="text.secondary">
                                     {event.description}
                                   </Typography>
                                 </Box>
@@ -357,3 +362,6 @@ const AcademicCalendar = () => {
 }
 
 export default AcademicCalendar
+
+
+
