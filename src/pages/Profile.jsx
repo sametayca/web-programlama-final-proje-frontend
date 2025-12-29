@@ -28,13 +28,13 @@ import {
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { authService } from '../services/api'
+import { authService, getApiUrl } from '../services/api'
 import { toast } from 'react-toastify'
 import Layout from '../components/Layout'
 
 // API base URL'ini al (API_URL'den /api kısmını çıkar)
 const getBaseUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+  const apiUrl = getApiUrl()
   // /api ile bitiyorsa çıkar, yoksa olduğu gibi kullan
   return apiUrl.replace(/\/api\/?$/, '')
 }

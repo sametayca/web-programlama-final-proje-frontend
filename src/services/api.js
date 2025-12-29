@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // API URL'ini RUNTIME'da belirle (build-time değil!)
-const getApiUrl = () => {
+export const getApiUrl = () => {
   // Runtime'da window.location'dan tespit et (ÖNCE BU!)
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol
