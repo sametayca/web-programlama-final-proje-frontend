@@ -40,7 +40,23 @@ const MealReservations = () => {
     try {
       setLoading(true)
       const response = await mealService.getMyReservations()
-      setReservations(response.data.data || [])
+      const data = response.data.data || []
+
+      // Deduplicate reservations (One per date+mealType)
+      const uniqueReservations = []
+      const seen = new Set()
+
+      data.forEach(res => {
+        const date = new Date(res.menu?.menuDate || res.menu?.date || res.reservationDate).toDateString()
+        const key = `${date}-${res.menu?.mealType}`
+
+        if (!seen.has(key)) {
+          seen.add(key)
+          uniqueReservations.push(res)
+        }
+      })
+
+      setReservations(uniqueReservations)
     } catch (err) {
       setError(err.response?.data?.error || 'Rezervasyonlar yüklenemedi')
     } finally {
