@@ -360,32 +360,6 @@ const MealReservations = () => {
                     </Typography>
                   </Alert>
 
-                  {/* Self-Redeem Button for Testing/Easy Usage */}
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    color="success"
-                    size="large"
-                    onClick={async () => {
-                      try {
-                        if (!window.confirm('Yemeği teslim aldığınızı onaylıyor musunuz?')) return;
-
-                        // 1. Validate first (to mimic flow) or just use direct
-                        // Direct use for simplicity in this user request
-                        await mealService.useReservation(selectedQR.id, { qrCode: selectedQR.qrCode })
-
-                        toast.success('Yemek kullanıldı işaretlendi!')
-                        setSelectedQR(null)
-                        fetchReservations() // Refresh list
-                      } catch (err) {
-                        toast.error(err.response?.data?.error || 'İşlem başarısız')
-                      }
-                    }}
-                    sx={{ mt: 2 }}
-                  >
-                    Yemeği Teslim Al (Test)
-                  </Button>
-
                   {selectedQR.amountPaid > 0 && (
                     <Alert severity="info" sx={{ mt: 2 }}>
                       Ödenen: {parseFloat(selectedQR.amountPaid).toFixed(2)} TL (Rezervasyon sırasında düşüldü)
