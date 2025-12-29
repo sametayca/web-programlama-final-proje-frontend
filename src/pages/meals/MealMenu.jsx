@@ -31,14 +31,15 @@ import { toast } from 'react-toastify'
 import { QRCodeSVG } from 'qrcode.react'
 import Layout from '../../components/Layout'
 import mealService from '../../services/mealService'
-import { 
-  Restaurant, 
-  AccessTime, 
-  Place, 
+import {
+  Restaurant,
+  AccessTime,
+  Place,
   LocalFireDepartment,
   Spa,
   FitnessCenter,
-  BookmarkBorder
+  BookmarkBorder,
+  CheckCircle,
 } from '@mui/icons-material'
 
 const MealMenu = () => {
@@ -46,15 +47,16 @@ const MealMenu = () => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [menus, setMenus] = useState([])
   const [cafeterias, setCafeterias] = useState([])
+  const [myReservations, setMyReservations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  
+
   // Reservation dialog
   const [reserveDialog, setReserveDialog] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState(null)
   const [selectedCafeteria, setSelectedCafeteria] = useState('')
   const [reserving, setReserving] = useState(false)
-  
+
   // QR Code dialog
   const [qrDialog, setQrDialog] = useState(false)
   const [reservationData, setReservationData] = useState(null)
@@ -67,15 +69,42 @@ const MealMenu = () => {
   }, [])
 
   useEffect(() => {
-    fetchMenus()
+    // Menus and reservation status need to be refreshed when date changes
+    const loadData = async () => {
+      setLoading(true)
+      try {
+        await Promise.all([fetchMenus(), fetchMyReservations()])
+      } catch (err) {
+        console.error('Error loading data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
   }, [selectedDate])
+
+  const fetchMyReservations = async () => {
+    try {
+      const response = await mealService.getMyReservations()
+      setMyReservations(response.data.data || [])
+    } catch (err) {
+      console.error('Error fetching reservations:', err)
+    }
+  }
 
   const fetchCafeterias = async () => {
     try {
       const response = await mealService.getCafeterias()
-      setCafeterias(response.data.data || [])
-      if (response.data.data?.length > 0) {
-        setSelectedCafeteria(response.data.data[0].id)
+      const allCafeterias = response.data.data || []
+
+      // Deduplicate cafeterias by name to avoid dropdown clutter
+      const uniqueCafeterias = allCafeterias.filter((caf, index, self) =>
+        index === self.findIndex((c) => c.name === caf.name)
+      )
+
+      setCafeterias(uniqueCafeterias)
+      if (uniqueCafeterias.length > 0) {
+        setSelectedCafeteria(uniqueCafeterias[0].id)
       }
     } catch (err) {
       console.error('Cafeterias fetch error:', err)
@@ -84,7 +113,6 @@ const MealMenu = () => {
 
   const fetchMenus = async () => {
     try {
-      setLoading(true)
       setError(null)
       const dateStr = selectedDate.toISOString().split('T')[0]
       const response = await mealService.getMenus({ date: dateStr })
@@ -92,8 +120,6 @@ const MealMenu = () => {
     } catch (err) {
       console.error('Error fetching menus:', err)
       setError(err.response?.data?.error || 'Menüler yüklenemedi')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -114,14 +140,15 @@ const MealMenu = () => {
         menuId: selectedMenu.id,
         cafeteriaId: selectedCafeteria
       })
-      
+
       setReservationData(response.data.data)
       setReserveDialog(false)
       setQrDialog(true)
       toast.success('Rezervasyon başarılı!')
-      
-      // Refresh menus
+
+      // Refresh menus and reservations
       fetchMenus()
+      fetchMyReservations()
     } catch (err) {
       toast.error(err.response?.data?.error || 'Rezervasyon yapılamadı')
     } finally {
@@ -152,12 +179,19 @@ const MealMenu = () => {
     const mealType = getMealTypeLabel(menu.mealType)
     const available = (menu.availableCapacity || 0) > 0
     const items = getMenuItems(menu)
-    
+
+    // Check if this menu is already reserved by the user
+    // We check if any reservation matches the menu ID and is not cancelled
+    const isReserved = myReservations.some(res =>
+      (res.menu?.id === menu.id || res.menuId === menu.id) &&
+      res.status !== 'cancelled'
+    )
+
     return (
       <Grid item xs={12} md={6} key={menu.id}>
-        <Card 
+        <Card
           elevation={3}
-          sx={{ 
+          sx={{
             height: '100%',
             opacity: available ? 1 : 0.7,
             border: available ? '2px solid' : '1px solid',
@@ -166,12 +200,12 @@ const MealMenu = () => {
         >
           <CardContent>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Chip 
+              <Chip
                 label={mealType.label}
                 color={mealType.color}
                 icon={<Restaurant />}
               />
-              <Chip 
+              <Chip
                 label={`${menu.availableCapacity} kişilik`}
                 size="small"
                 color={available ? 'success' : 'default'}
@@ -201,7 +235,7 @@ const MealMenu = () => {
             <List dense>
               {items.map((item, index) => (
                 <ListItem key={index} disableGutters>
-                  <ListItemText 
+                  <ListItemText
                     primary={
                       <Box display="flex" alignItems="center" gap={1}>
                         <Typography variant="body2">• {item.name}</Typography>
@@ -229,12 +263,14 @@ const MealMenu = () => {
 
             <Button
               fullWidth
-              variant="contained"
-              onClick={() => handleOpenReserve(menu)}
-              disabled={!available}
+              variant={isReserved ? "outlined" : "contained"}
+              color={isReserved ? "success" : "primary"}
+              onClick={() => isReserved ? navigate('/meals/reservations') : handleOpenReserve(menu)}
+              disabled={!available && !isReserved}
+              startIcon={isReserved ? <CheckCircle /> : null}
               sx={{ mt: 2 }}
             >
-              {available ? 'Rezervasyon Yap' : 'Kapasite Dolu'}
+              {isReserved ? 'Rezerve Edildi (Görüntüle)' : available ? 'Rezervasyon Yap' : 'Kapasite Dolu'}
             </Button>
           </CardContent>
         </Card>
@@ -284,11 +320,11 @@ const MealMenu = () => {
             />
           </LocalizationProvider>
           <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-            Seçilen tarih: {selectedDate.toLocaleDateString('tr-TR', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            Seçilen tarih: {selectedDate.toLocaleDateString('tr-TR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </Typography>
         </Paper>
@@ -357,8 +393,8 @@ const MealMenu = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setReserveDialog(false)}>İptal</Button>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={handleReserve}
               disabled={reserving || !selectedCafeteria}
             >
@@ -368,8 +404,8 @@ const MealMenu = () => {
         </Dialog>
 
         {/* QR Code Dialog */}
-        <Dialog 
-          open={qrDialog} 
+        <Dialog
+          open={qrDialog}
           onClose={() => setQrDialog(false)}
           maxWidth="sm"
           fullWidth
@@ -385,17 +421,17 @@ const MealMenu = () => {
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     Bu kodu kafeteryada gösterin
                   </Typography>
-                  <Box 
-                    sx={{ 
-                      p: 3, 
-                      bgcolor: 'white', 
+                  <Box
+                    sx={{
+                      p: 3,
+                      bgcolor: 'white',
                       borderRadius: 2,
                       mt: 2,
                       display: 'inline-block'
                     }}
                   >
-                    <QRCodeSVG 
-                      value={reservationData.qrCode} 
+                    <QRCodeSVG
+                      value={reservationData.qrCode}
                       size={256}
                       level="H"
                     />
