@@ -25,10 +25,10 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { tr } from 'date-fns/locale'
 import Layout from '../../components/Layout'
 import eventService from '../../services/eventService'
-import {
-  Event,
-  People,
-  Place,
+import { 
+  Event, 
+  People, 
+  Place, 
   AccessTime,
   Search,
   MoneyOff,
@@ -66,7 +66,7 @@ const Events = () => {
       const params = {
         isActive: true
       }
-
+      
       if (filters.eventType) params.eventType = filters.eventType
       if (filters.search) params.search = filters.search
       if (filters.startDate) {
@@ -75,22 +75,17 @@ const Events = () => {
 
       // Add higher limit to get all events including social ones
       params.limit = 100
-
+      
       const response = await eventService.listEvents(params)
       console.log('Events API Response:', response.data)
       const allEvents = response.data.data || []
       console.log('All Events:', allEvents.length, allEvents)
-
-      // Deduplicate events by ID
-      const uniqueEvents = allEvents.filter((evt, index, self) =>
-        index === self.findIndex((e) => e.id === evt.id)
-      )
-
+      
       // Filter out academic calendar events (they should only appear in Academic Calendar page)
       const academicTypes = ['academic', 'exam', 'holiday', 'registration', 'ceremony']
-      const filteredEvents = uniqueEvents.filter(evt => !academicTypes.includes(evt.eventType))
+      const filteredEvents = allEvents.filter(evt => !academicTypes.includes(evt.eventType))
       console.log('Filtered Events (non-academic):', filteredEvents.length, filteredEvents)
-
+      
       setEvents(filteredEvents)
     } catch (err) {
       setError(err.response?.data?.error || 'Etkinlikler yüklenemedi')
@@ -126,12 +121,12 @@ const Events = () => {
     const isFull = remainingSpots <= 0
     const isPast = new Date(event.startDate) < new Date()
     const paid = isPaid(event)
-
+    
     return (
       <Grid item xs={12} md={6} lg={4} key={event.id}>
-        <Card
+        <Card 
           elevation={3}
-          sx={{
+          sx={{ 
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
@@ -144,20 +139,20 @@ const Events = () => {
         >
           <CardContent sx={{ flexGrow: 1 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Chip
+              <Chip 
                 label={eventType.label}
                 color={eventType.color}
                 size="small"
               />
               {paid ? (
-                <Chip
+                <Chip 
                   icon={<Paid />}
                   label={`${event.price} TL`}
                   color="warning"
                   size="small"
                 />
               ) : (
-                <Chip
+                <Chip 
                   icon={<MoneyOff />}
                   label="Ücretsiz"
                   color="success"
@@ -170,9 +165,9 @@ const Events = () => {
               {event.title}
             </Typography>
 
-            <Typography
-              variant="body2"
-              color="text.secondary"
+            <Typography 
+              variant="body2" 
+              color="text.secondary" 
               paragraph
               sx={{
                 overflow: 'hidden',
@@ -214,13 +209,13 @@ const Events = () => {
               {isFull ? (
                 <Chip label="Dolu" color="error" size="small" />
               ) : remainingSpots <= 10 ? (
-                <Chip
+                <Chip 
                   label={`${remainingSpots} yer kaldı`}
                   color="warning"
                   size="small"
                 />
               ) : (
-                <Chip
+                <Chip 
                   label={`${remainingSpots} yer`}
                   color="success"
                   size="small"
@@ -267,7 +262,7 @@ const Events = () => {
           <Typography variant="h4" fontWeight="bold" color="primary">
             Etkinlikler
           </Typography>
-          <Button
+          <Button 
             variant="outlined"
             onClick={() => navigate('/my-events')}
           >

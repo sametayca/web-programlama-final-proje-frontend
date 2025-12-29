@@ -90,7 +90,7 @@ const GiveAttendance = () => {
         let errorMessage;
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Konum izni reddedildi. Eğer Instagram/WhatsApp gibi bir uygulama içinden açtıysanız, lütfen sağ üst köşeden 'Chrome'da Aç' veya 'Tarayıcıda Aç' diyerek normal tarayıcıya geçin.";
+            errorMessage = "Konum izni reddedildi. Lütfen tarayıcı ayarlarından (Kilit simgesi) siteye konum izni verin.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = "Konum bilgisi alınamıyor. GPS'in açık olduğundan emin olun.";
