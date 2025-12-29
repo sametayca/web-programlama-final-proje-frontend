@@ -56,8 +56,14 @@ import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '../context/ThemeContext'
 import NotificationBell from './NotificationBell'
+import { getApiUrl } from '../services/api'
 
 const drawerWidth = 280
+
+const getBaseUrl = () => {
+  const apiUrl = getApiUrl()
+  return apiUrl.replace(/\/api\/?$/, '')
+}
 
 const Layout = ({ children }) => {
   const muiTheme = useMuiTheme()
@@ -176,7 +182,7 @@ const Layout = ({ children }) => {
       >
         <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <Avatar
-            src={user?.profilePicture ? `http://localhost:3000/uploads/profile-pictures/${user.profilePicture}` : ''}
+            src={user?.profilePicture ? `${getBaseUrl()}/uploads/profile-pictures/${user.profilePicture}` : ''}
             sx={{
               width: 90,
               height: 90,
@@ -397,7 +403,7 @@ const Layout = ({ children }) => {
                 }}
               >
                 <Avatar
-                  src={user?.profilePicture ? `http://localhost:3000/uploads/profile-pictures/${user.profilePicture}` : ''}
+                  src={user?.profilePicture ? `${getBaseUrl()}/uploads/profile-pictures/${user.profilePicture}` : ''}
                   sx={{
                     width: 42,
                     height: 42,
