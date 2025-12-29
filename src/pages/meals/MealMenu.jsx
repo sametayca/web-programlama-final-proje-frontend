@@ -116,7 +116,22 @@ const MealMenu = () => {
       setError(null)
       const dateStr = selectedDate.toISOString().split('T')[0]
       const response = await mealService.getMenus({ date: dateStr })
-      setMenus(response.data.data || [])
+      const allMenus = response.data.data || []
+
+      // Deduplicate menus based on mealType and cafeteria
+      // Use a Map to keep unique entries: key = cafeteriaId + mealType
+      const uniqueMenus = []
+      const seen = new Set()
+
+      allMenus.forEach(menu => {
+        const key = `${menu.cafeteria?.id}-${menu.mealType}`
+        if (!seen.has(key)) {
+          seen.add(key)
+          uniqueMenus.push(menu)
+        }
+      })
+
+      setMenus(uniqueMenus)
     } catch (err) {
       console.error('Error fetching menus:', err)
       setError(err.response?.data?.error || 'Menüler yüklenemedi')
@@ -181,11 +196,24 @@ const MealMenu = () => {
     const items = getMenuItems(menu)
 
     // Check if this menu is already reserved by the user
-    // We check if any reservation matches the menu ID and is not cancelled
-    const isReserved = myReservations.some(res =>
-      (res.menu?.id === menu.id || res.menuId === menu.id) &&
-      res.status !== 'cancelled'
-    )
+    // Check by Menu ID OR (Date + MealType) to catch duplicates or cross-linked menus
+    const isReserved = myReservations.some(res => {
+      if (res.status === 'cancelled') return false
+
+      // Direct ID match
+      if (res.menu?.id === menu.id || res.menuId === menu.id) return true
+
+      // Date + Meal Type match (Stronger check)
+      const resDate = new Date(res.menu?.menuDate || res.menu?.date || res.reservationDate)
+      const currentMenuDate = new Date(menu.date || selectedDate)
+
+      // Reset hours for date comparison
+      resDate.setHours(0, 0, 0, 0)
+      currentMenuDate.setHours(0, 0, 0, 0)
+
+      return resDate.getTime() === currentMenuDate.getTime() &&
+        res.menu?.mealType === menu.mealType
+    })
 
     return (
       <Grid item xs={12} md={6} key={menu.id}>
