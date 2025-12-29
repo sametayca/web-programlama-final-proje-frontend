@@ -37,7 +37,7 @@ const GiveAttendance = () => {
   useEffect(() => {
     if (user?.role === 'student') {
       fetchSession()
-      requestLocation()
+      // requestLocation() -> REMOVED: Auto-request causes issues on Safari/iOS
     }
   }, [sessionId, user])
 
@@ -90,7 +90,7 @@ const GiveAttendance = () => {
         let errorMessage;
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = "Konum izni reddedildi. Eğer Instagram/WhatsApp gibi bir uygulama içinden açtıysanız, lütfen sağ üst köşeden 'Chrome'da Aç' veya 'Tarayıcıda Aç' diyerek normal tarayıcıya geçin.";
+            errorMessage = "Konum izni reddedildi. Lütfen adres çubuğundaki 'Aa' veya 'Kilit' simgesine tıklayıp Konum iznini 'Sor' veya 'İzin Ver' olarak değiştirin ve sayfayı yenileyin.";
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = "Konum bilgisi alınamıyor. GPS'in açık olduğundan emin olun.";
@@ -318,10 +318,17 @@ const GiveAttendance = () => {
               </Box>
             ) : (
               <Box sx={{ textAlign: 'center', py: 4 }}>
-                <CircularProgress />
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Konumunuz alınıyor...
+                <LocationOnIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="body1" gutterBottom>
+                  Yoklama vermek için konumunuzu doğrulamanız gerekiyor.
                 </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => requestLocation(true)}
+                  sx={{ mt: 2 }}
+                >
+                  Konumumu Bul
+                </Button>
               </Box>
             )}
           </CardContent>
