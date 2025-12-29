@@ -196,18 +196,17 @@ const MealMenu = () => {
     const items = getMenuItems(menu)
 
     // Check if this menu is already reserved by the user
-    // Check by Menu ID OR (Date + MealType) to catch duplicates or cross-linked menus
-    const isReserved = myReservations.some(res => {
+    // Find the actual reservation object
+    const existingReservation = myReservations.find(res => {
       if (res.status === 'cancelled') return false
 
       // Direct ID match
       if (res.menu?.id === menu.id || res.menuId === menu.id) return true
 
-      // Date + Meal Type match (Stronger check)
+      // Date + Meal Type match
       const resDate = new Date(res.menu?.menuDate || res.menu?.date || res.reservationDate)
       const currentMenuDate = new Date(menu.date || selectedDate)
 
-      // Reset hours for date comparison
       resDate.setHours(0, 0, 0, 0)
       currentMenuDate.setHours(0, 0, 0, 0)
 
@@ -215,15 +214,20 @@ const MealMenu = () => {
         res.menu?.mealType === menu.mealType
     })
 
+    const isReservedHere = existingReservation && (existingReservation.menu?.id === menu.id || existingReservation.menu?.cafeteria?.id === menu.cafeteria?.id)
+    const isReservedElsewhere = existingReservation && !isReservedHere
+    const reservedCafeteriaName = existingReservation?.menu?.cafeteria?.name || existingReservation?.menu?.cafeteria?.location || 'Başka Kafeterya'
+
     return (
       <Grid item xs={12} md={6} key={menu.id}>
         <Card
           elevation={3}
           sx={{
             height: '100%',
-            opacity: available ? 1 : 0.7,
-            border: available ? '2px solid' : '1px solid',
-            borderColor: available ? 'primary.main' : 'grey.300'
+            opacity: isReservedElsewhere ? 0.6 : ((!available && !isReservedHere) ? 0.7 : 1), // Assuming isFull is !available
+            border: isReservedHere ? '2px solid' : (available ? '1px solid' : '1px solid'),
+            borderColor: isReservedHere ? 'success.main' : (available ? 'primary.main' : 'grey.300'),
+            bgcolor: isReservedElsewhere ? 'action.hover' : 'background.paper'
           }}
         >
           <CardContent>
@@ -291,14 +295,18 @@ const MealMenu = () => {
 
             <Button
               fullWidth
-              variant={isReserved ? "outlined" : "contained"}
-              color={isReserved ? "success" : "primary"}
-              onClick={() => isReserved ? navigate('/meals/reservations') : handleOpenReserve(menu)}
-              disabled={!available && !isReserved}
-              startIcon={isReserved ? <CheckCircle /> : null}
+              variant={isReservedHere ? "outlined" : "contained"}
+              color={isReservedHere ? "success" : (isReservedElsewhere ? "secondary" : "primary")}
+              onClick={() => (isReservedHere || isReservedElsewhere) ? navigate('/meals/reservations') : handleOpenReserve(menu)}
+              disabled={(!available && !isReservedHere && !isReservedElsewhere)}
+              startIcon={isReservedHere ? <CheckCircle /> : (isReservedElsewhere ? <BookmarkBorder /> : null)}
               sx={{ mt: 2 }}
             >
-              {isReserved ? 'Rezerve Edildi (Görüntüle)' : available ? 'Rezervasyon Yap' : 'Kapasite Dolu'}
+              {isReservedHere
+                ? 'Rezerve Edildi (Görüntüle)'
+                : isReservedElsewhere
+                  ? `Rezerve: ${reservedCafeteriaName}`
+                  : available ? 'Rezervasyon Yap' : 'Kapasite Dolu'}
             </Button>
           </CardContent>
         </Card>
